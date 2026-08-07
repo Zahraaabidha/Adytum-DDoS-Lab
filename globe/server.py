@@ -68,7 +68,7 @@ async def feed(window_seconds: int = 30, limit: int = 300):
 
 def _container_running(service: str) -> bool:
     result = subprocess.run(
-        ["docker", "ps", "--filter", f"label=com.docker.compose.project=ddos-attack",
+        ["docker", "ps", "--filter", "label=com.docker.compose.project=ddos-attack",
          "--filter", f"label=com.docker.compose.service={service}",
          "--filter", "status=running", "--format", "{{.Names}}"],
         capture_output=True, text=True, timeout=10,

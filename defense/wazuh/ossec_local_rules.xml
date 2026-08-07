@@ -1,0 +1,17 @@
+<!-- SENTINEL LAB custom Wazuh rules: correlate Suricata DDoS alerts with the
+     ML-driven mitigation actions logged by defense/engine.py -->
+<group name="sentinel_lab,">
+  <rule id="100100" level="10">
+    <if_sid>86601</if_sid> <!-- suricata alert base rule -->
+    <field name="alert.signature_id">^100000[1-4]$</field>
+    <description>SENTINEL LAB: Suricata flagged a possible DDoS pattern</description>
+    <group>ddos_detected,</group>
+  </rule>
+
+  <rule id="100101" level="8">
+    <decoded_as>json</decoded_as>
+    <field name="reason">classifier confidence</field>
+    <description>SENTINEL LAB: adaptive mitigation action taken by ML classifier</description>
+    <group>ddos_mitigation,</group>
+  </rule>
+</group>

@@ -1,0 +1,25 @@
+# Attacker jobs -- always labeled role: attacker so the default-deny egress
+# NetworkPolicy in 00-namespace-and-networkpolicy.yaml applies to them.
+# Run on-demand with `kubectl apply -f` + `kubectl create job --from=cronjob/...`
+# or simply `kubectl apply -f 20-attackers.yaml` to fire once.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: attacker-http-flood
+  namespace: sentinel-lab
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels: { role: attacker }
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: http-flood
+          image: sentinel-lab/attackers:latest
+          command: ["python", "http_flood.py"]
+          env:
+            - { name: TARGET_URL, value: "http://rate-limiter:8080/" }
+            - { name: CONCURRENCY, value: "50" }
+            - { name: DURATION, value: "60" }
+            - { name: RUN_NAME, value: "k8s_http_flood_run" }

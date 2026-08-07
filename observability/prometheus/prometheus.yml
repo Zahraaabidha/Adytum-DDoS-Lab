@@ -1,0 +1,37 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: "target-web"
+    dns_sd_configs:
+      - names: ["web"]
+        type: A
+        port: 8000
+    metrics_path: /metrics
+
+  - job_name: "target-tcp"
+    dns_sd_configs:
+      - names: ["tcp-service"]
+        type: A
+        port: 9100
+    metrics_path: /metrics
+
+  - job_name: "target-udp"
+    dns_sd_configs:
+      - names: ["dns-udp"]
+        type: A
+        port: 9200
+    metrics_path: /metrics
+
+  - job_name: "defense-engine"
+    static_configs:
+      - targets: ["defense-engine:9300"]
+
+  - job_name: "rate-limiter"
+    static_configs:
+      - targets: ["rate-limiter:8080"]
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

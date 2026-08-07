@@ -1,0 +1,67 @@
+name: SENTINEL LAB CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install lint tools
+        run: pip install ruff
+      - name: Lint (ruff)
+        run: ruff check attackers defense globe reports tests
+
+  classifier-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test + classifier deps
+        run: |
+          pip install -r tests/requirements.txt
+          pip install -r defense/requirements.txt
+      - name: Run classifier unit tests
+        run: pytest tests/test_classifier.py -v
+
+  network-isolation-and-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify network isolation (MUST pass before anything else)
+        run: bash tests/test_network_isolation.sh
+
+      - name: Bring up target infra + observability
+        run: docker compose up -d --build web lb tcp-service dns-udp prometheus
+
+      - name: Wait for web target to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            curl -fs http://localhost:9090/-/ready && break
+            sleep 2
+          done
+
+      - name: Run a short legitimate-load control simulation
+        run: |
+          docker compose --profile legit-load run --rm \
+            -e DURATION=20 -e RUN_NAME=ci_smoke_legit legit-load
+
+      - name: Run a short HTTP flood simulation end-to-end
+        run: |
+          docker compose --profile attack-http-flood run --rm \
+            -e DURATION=20 -e RUN_NAME=ci_smoke_attack attacker-http-flood
+
+      - name: Re-verify attacker containers still have no external route
+        run: bash tests/test_network_isolation.sh
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

@@ -1,0 +1,354 @@
+# =============================================================================
+# SENTINEL LAB — network topology
+#
+# Isolation model (verified by tests/test_network_isolation.sh, MUST pass
+# before any attacker/target service is trusted):
+#
+#   attacker_net  (internal: true) - attacker containers live ONLY here + target_net
+#   target_net    (internal: true) - target services, prometheus, suricata, defense
+#   public_net    (bridge, NOT internal) - grafana/globe/report UIs the operator
+#                 views from the host. Nothing on public_net can originate attack
+#                 traffic; it only serves dashboards over published ports.
+#
+# `internal: true` tells the Docker daemon to omit the network from NAT/masquerade
+# rules and to give it no default route to any external interface. Containers
+# attached ONLY to internal networks have no path to the internet at the kernel
+# routing level — this is enforced by Docker's network driver, not by anything
+# in application code. See tests/test_network_isolation.sh for the live proof.
+# =============================================================================
+
+networks:
+  attacker_net:
+    driver: bridge
+    internal: true
+  target_net:
+    driver: bridge
+    internal: true
+  public_net:
+    driver: bridge
+  # threatintel_net (Stage D) - isolated bridge network for the Global Threat
+  # Intelligence module's own Postgres/Redis. NOT internal, because
+  # threat-intel needs outbound HTTPS to public feed hosts + MaxMind. This
+  # network has no bridge to attacker_net/target_net; threat-intel is never
+  # attached to either of those two networks.
+  threatintel_net:
+    driver: bridge
+
+services:
+  # ---------------------------------------------------------------------------
+  # Isolation self-test fixtures (only started with --profile isolation-test)
+  # ---------------------------------------------------------------------------
+  isolation-target:
+    image: nginx:alpine
+    profiles: ["isolation-test"]
+    networks: [target_net]
+
+  isolation-attacker:
+    build:
+      context: .
+      dockerfile: tests/isolation-attacker.Dockerfile
+    profiles: ["isolation-test"]
+    networks: [attacker_net, target_net]
+
+  # ---------------------------------------------------------------------------
+  # Target infrastructure (stage 2)
+  # ---------------------------------------------------------------------------
+  web:
+    build: ./targets/web
+    networks: [target_net]
+    deploy:
+      replicas: 3
+
+  lb:
+    build: ./targets/lb
+    networks: [target_net]
+    depends_on: [web]
+
+  tcp-service:
+    build: ./targets/tcp_service
+    networks: [target_net]
+    deploy:
+      replicas: 2
+
+  dns-udp:
+    build: ./targets/dns_udp
+    networks: [target_net]
+    deploy:
+      replicas: 2
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    networks: [target_net, public_net]
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on: [web, tcp-service, dns-udp]
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    networks: [target_net, public_net]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: sentinel
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_SECURITY_COOKIE_SAMESITE: "disabled"
+      # Grafana is reverse-proxied at /grafana/ (dashboard/nginx.conf,
+      # vite.config.ts). Without these two, Grafana always renders
+      # `<base href="/">` regardless of proxy path, so every asset request
+      # (/public/build/*.js) resolves to the dashboard's own origin root
+      # and gets swallowed by its SPA catch-all -- the "Grafana has failed
+      # to load its application files" error. These make Grafana aware of
+      # its own mount point so asset/API URLs are correctly prefixed.
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on: [prometheus]
+
+  # ---------------------------------------------------------------------------
+  # Detection & mitigation engine (stage 4/5)
+  # ---------------------------------------------------------------------------
+  defense-engine:
+    build: ./defense
+    networks: [target_net, public_net]
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090
+      RECORDINGS_DIR: /app/recordings
+    volumes:
+      - ./defense:/app
+      - attacker-recordings:/app/recordings:ro
+    ports:
+      - "9300:9300"
+    depends_on: [prometheus]
+
+  rate-limiter:
+    build: ./defense/rate_limiter
+    networks: [attacker_net, target_net]
+    environment:
+      UPSTREAM_URL: http://lb:8000
+      ENGINE_URL: http://defense-engine:9300
+    depends_on: [lb, defense-engine]
+
+  # Shares rate-limiter's network namespace so it observes traffic at the
+  # lab's ingress chokepoint (where http_flood/slowloris traffic lands).
+  # tcp_exhaustion/udp_flood hit tcp-service/dns-udp directly and are covered
+  # instead by those targets' own connection/packet Prometheus counters.
+  suricata:
+    image: jasonish/suricata:7.0.3
+    network_mode: "service:rate-limiter"
+    cap_add: ["NET_ADMIN", "NET_RAW", "SYS_NICE"]
+    volumes:
+      - ./defense/suricata/suricata.yaml:/etc/suricata/suricata.yaml
+      - ./defense/suricata/ddos.rules:/etc/suricata/rules/ddos.rules
+      - suricata-logs:/var/log/suricata
+    command: ["-i", "eth0"]
+    depends_on: [rate-limiter]
+
+  # ---------------------------------------------------------------------------
+  # Attack simulation engine (stage 3) — isolated on attacker_net, only
+  # started explicitly via `--profile attack-http-flood` etc, never by
+  # default with `docker compose up`.
+  # ---------------------------------------------------------------------------
+  attacker-http-flood:
+    build: ./attackers
+    profiles: ["attack-http-flood"]
+    command: ["python", "http_flood.py"]
+    environment:
+      TARGET_URL: http://rate-limiter:8080/
+      CONCURRENCY: "50"
+      DURATION: "60"
+      RUN_NAME: http_flood_run
+    volumes:
+      - attacker-recordings:/app/recordings
+    networks: [attacker_net, target_net]
+
+  attacker-slowloris:
+    build: ./attackers
+    profiles: ["attack-slowloris"]
+    command: ["python", "slowloris.py"]
+    environment:
+      TARGET_HOST: web
+      TARGET_PORT: "8000"
+      CONCURRENCY: "100"
+      DURATION: "60"
+      RUN_NAME: slowloris_run
+    volumes:
+      - attacker-recordings:/app/recordings
+    networks: [attacker_net, target_net]
+
+  attacker-udp-flood:
+    build: ./attackers
+    profiles: ["attack-udp-flood"]
+    command: ["python", "udp_flood.py"]
+    environment:
+      TARGET_HOST: dns-udp
+      TARGET_PORT: "5300"
+      CONCURRENCY: "20"
+      DURATION: "60"
+      RUN_NAME: udp_flood_run
+    volumes:
+      - attacker-recordings:/app/recordings
+    networks: [attacker_net, target_net]
+
+  attacker-tcp-exhaustion:
+    build: ./attackers
+    profiles: ["attack-tcp-exhaustion"]
+    command: ["python", "tcp_exhaustion.py"]
+    environment:
+      TARGET_HOST: tcp-service
+      TARGET_PORT: "9000"
+      CONCURRENCY: "200"
+      DURATION: "60"
+      RUN_NAME: tcp_exhaustion_run
+    volumes:
+      - attacker-recordings:/app/recordings
+    networks: [attacker_net, target_net]
+
+  legit-load:
+    build: ./attackers
+    profiles: ["legit-load"]
+    command: ["python", "legit_load.py", "--burst"]
+    environment:
+      TARGET_URL: http://rate-limiter:8080/
+      CONCURRENCY: "10"
+      DURATION: "180"
+      RUN_NAME: legit_load_control_run
+    volumes:
+      - attacker-recordings:/app/recordings
+    networks: [attacker_net, target_net]
+
+  # ---------------------------------------------------------------------------
+  # Globe visualization (stage 6)
+  # ---------------------------------------------------------------------------
+  globe:
+    build: ./globe
+    networks: [target_net, public_net]
+    environment:
+      RECORDINGS_DIR: /app/recordings
+      # Lets server.py's sandbox attack controls shell out to `docker compose`
+      # for the SAME stack (project name + compose file) this container is
+      # itself part of, so `up -d`/`stop` attach to the already-running
+      # networks/services instead of creating a second, disconnected stack.
+      COMPOSE_PROJECT_NAME: ddos-attack
+      COMPOSE_FILE: /workspace/docker-compose.yml
+    volumes:
+      # Named volume, not a host bind mount -- see the `attacker-recordings`
+      # top-level volume's own comment for why. This container's `/api/feed`
+      # reads whatever `attacker-*` containers most recently wrote here.
+      - attacker-recordings:/app/recordings:ro
+      # Read-only project mount so `docker compose` can resolve build
+      # contexts/volume paths the same way it would from the host, and the
+      # Docker socket so it can actually talk to the daemon. This gives the
+      # globe container real control over the Docker host -- standard for
+      # this "sibling container" pattern, but worth knowing it's more
+      # privilege than a plain dashboard needs.
+      - .:/workspace:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8090:8090"
+
+  # ---------------------------------------------------------------------------
+  # Global Threat Intelligence (Stage D) — completely separate module from the
+  # Sandbox Lab above. threat-intel-db and threat-intel-redis live ONLY on
+  # threatintel_net. threat-intel itself sits on [threatintel_net, public_net]
+  # for its DB/Redis + dashboard/API access, and is NEVER attached to
+  # attacker_net or target_net — it has no code path that could send attack
+  # traffic and only ever makes outbound HTTPS calls to public feed hosts.
+  # ---------------------------------------------------------------------------
+  threat-intel-db:
+    image: postgres:16-alpine
+    networks: [threatintel_net]
+    environment:
+      POSTGRES_USER: threat_intel
+      POSTGRES_PASSWORD: threat_intel_dev_only
+      POSTGRES_DB: threat_intel
+    volumes:
+      - threat-intel-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U threat_intel -d threat_intel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  threat-intel-redis:
+    image: redis:7-alpine
+    networks: [threatintel_net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  threat-intel:
+    build: ./services/threat-intel
+    networks: [threatintel_net, public_net]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://threat_intel:threat_intel_dev_only@threat-intel-db:5432/threat_intel
+      REDIS_URL: redis://threat-intel-redis:6379/0
+      ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY:-}
+      OTX_API_KEY: ${OTX_API_KEY:-}
+      MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}
+      GEOIP_DB_DIR: /app/data/geoip
+    volumes:
+      - threat-intel-geoip:/app/data/geoip
+    ports:
+      - "9400:9400"
+    depends_on:
+      threat-intel-db:
+        condition: service_healthy
+      threat-intel-redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # SOC dashboard shell (Stage E) — Vite+React SPA built and served by nginx.
+  # public_net only: it is a client of threat-intel/globe/grafana over the
+  # network they already share, never attached to attacker_net/target_net.
+  # No real page content yet (placeholders only) — see Stage Roadmap E-J.
+  # ---------------------------------------------------------------------------
+  dashboard:
+    build: ./dashboard
+    networks: [public_net]
+    ports:
+      - "8080:8080"
+    depends_on: [threat-intel, globe, grafana]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  suricata-logs:
+  threat-intel-db-data:
+  threat-intel-geoip:
+  # Shared between attacker-*, globe, and defense-engine. Deliberately a
+  # named volume, not a `./attackers/recordings` host bind mount: `globe`'s
+  # sandbox attack controls (globe/server.py) start attacker-* containers by
+  # shelling out to a *nested* `docker compose` invocation (over the shared
+  # docker.sock -- see globe's own volumes below). That nested CLI runs
+  # inside globe's own container and resolves the compose file's relative
+  # bind-mount paths against its own filesystem view of the project, not
+  # the real Docker host's -- on Docker Desktop for Windows in particular,
+  # this produced a *different, disconnected* directory per container
+  # (confirmed live: attacker-http-flood was writing thousands of events
+  # into a directory globe/dashboard could never see, while the feed
+  # endpoint kept reading a stale copy). A named volume has no host-path
+  # string to resolve or get out of sync -- every container that mounts it
+  # by name sees the exact same data, regardless of which process started
+  # the container. Historical recordings under `attackers/recordings/*.jsonl`
+  # on the host are untouched by this change but are no longer where *new*
+  # runs land; use `docker run --rm -v ddos-attack_attacker-recordings:/data
+  # -v "${PWD}/attackers/recordings:/host" alpine cp -a /data/. /host/` to
+  # export a live run to the host filesystem if needed.
+  attacker-recordings:

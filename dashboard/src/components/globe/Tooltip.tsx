@@ -1,0 +1,54 @@
+import { Html } from "@react-three/drei";
+import { latLonToVector3 } from "./geo";
+import { threatTypeColor } from "./colorScale";
+import { GLOBE_RADIUS } from "./constants";
+import type { ThreatEvent } from "../../types/threat";
+
+interface TooltipProps {
+  event: ThreatEvent | null;
+}
+
+/**
+ * Hover-only summary (country/ip/threat_type/confidence/source/timestamp)
+ * rendered via drei's <Html>, which projects a 3D position into the DOM so
+ * the tooltip tracks the globe as it rotates. Only mounted while something
+ * is hovered -- no per-frame cost when idle.
+ */
+export function Tooltip({ event }: TooltipProps) {
+  if (!event || event.lat == null || event.lon == null) return null;
+  const position = latLonToVector3(event.lat, event.lon, GLOBE_RADIUS + 0.05);
+  const color = threatTypeColor(event.threat_type);
+
+  return (
+    <Html position={position} center distanceFactor={6} zIndexRange={[100, 0]} pointerEvents="none">
+      <div className="w-52 -translate-y-full rounded-lg border border-white/10 bg-panel/95 p-2.5 text-xs shadow-lg backdrop-blur">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+          <span className="font-medium text-slate-200">{event.ioc}</span>
+        </div>
+        <dl className="mt-1.5 space-y-0.5 text-slate-400">
+          <div className="flex justify-between gap-2">
+            <dt>Country</dt>
+            <dd className="text-slate-300">{event.country ?? "Unknown"}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Type</dt>
+            <dd className="text-slate-300">{event.threat_type}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Confidence</dt>
+            <dd className="text-slate-300">{Math.round(event.confidence_score * 100)}%</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Source count</dt>
+            <dd className="text-slate-300">{event.source_count}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>Last seen</dt>
+            <dd className="text-slate-300">{new Date(event.last_seen).toLocaleString()}</dd>
+          </div>
+        </dl>
+      </div>
+    </Html>
+  );
+}

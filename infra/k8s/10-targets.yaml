@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: sentinel-lab
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: web, role: target }
+  template:
+    metadata:
+      labels: { app: web, role: target }
+    spec:
+      containers:
+        - name: web
+          image: sentinel-lab/web:latest
+          ports:
+            - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: sentinel-lab
+spec:
+  selector: { app: web, role: target }
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tcp-service
+  namespace: sentinel-lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: tcp-service, role: target }
+  template:
+    metadata:
+      labels: { app: tcp-service, role: target }
+    spec:
+      containers:
+        - name: tcp-service
+          image: sentinel-lab/tcp-service:latest
+          ports:
+            - containerPort: 9000
+            - containerPort: 9100
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcp-service
+  namespace: sentinel-lab
+spec:
+  selector: { app: tcp-service, role: target }
+  ports:
+    - name: tcp
+      port: 9000
+      targetPort: 9000
+    - name: metrics
+      port: 9100
+      targetPort: 9100
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-udp
+  namespace: sentinel-lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: dns-udp, role: target }
+  template:
+    metadata:
+      labels: { app: dns-udp, role: target }
+    spec:
+      containers:
+        - name: dns-udp
+          image: sentinel-lab/dns-udp:latest
+          ports:
+            - containerPort: 5300
+              protocol: UDP
+            - containerPort: 9200
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns-udp
+  namespace: sentinel-lab
+spec:
+  selector: { app: dns-udp, role: target }
+  ports:
+    - name: dns
+      port: 5300
+      protocol: UDP
+      targetPort: 5300
+    - name: metrics
+      port: 9200
+      targetPort: 9200

@@ -1,0 +1,15 @@
+# SENTINEL LAB custom Suricata rules: flag flood-style patterns for the
+# lab's internal traffic. Thresholds are tuned for the small demo traffic
+# volumes used in this lab, not production traffic.
+
+# Port 8080 is the rate-limiter's ingress port -- the actual chokepoint
+# attacker traffic hits (Suricata shares the rate-limiter container's
+# network namespace, see docker-compose.yml). Port 8000 (the web/lb port)
+# is kept too in case Suricata is ever re-pointed at the lb's netns instead.
+alert tcp any any -> any [8000,8080] (msg:"SENTINEL LAB: possible HTTP flood"; flow:to_server; threshold:type both, track by_src, count 200, seconds 10; classtype:attempted-dos; sid:1000001; rev:1;)
+
+alert tcp any any -> any [8000,8080] (msg:"SENTINEL LAB: possible Slowloris (many half-open connections)"; flow:to_server,no_frag; flags:S; threshold:type both, track by_src, count 50, seconds 10; classtype:attempted-dos; sid:1000002; rev:1;)
+
+alert udp any any -> any 5300 (msg:"SENTINEL LAB: possible UDP flood"; threshold:type both, track by_src, count 500, seconds 10; classtype:attempted-dos; sid:1000003; rev:1;)
+
+alert tcp any any -> any 9000 (msg:"SENTINEL LAB: possible TCP connection exhaustion"; flags:S; threshold:type both, track by_src, count 200, seconds 10; classtype:attempted-dos; sid:1000004; rev:1;)

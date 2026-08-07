@@ -1,0 +1,31 @@
+# Kubernetes analogue of tests/test_network_isolation.sh: a Job labeled
+# role: attacker that tries to reach an external host and asserts failure.
+# `kubectl wait --for=condition=complete job/verify-isolation` should be run
+# in CI/setup, and a non-zero exit means isolation is broken -- do not
+# proceed with any other SENTINEL LAB k8s manifests if this fails.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: verify-isolation
+  namespace: sentinel-lab
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        role: attacker
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: verify
+          image: curlimages/curl:8.10.1
+          command:
+            - sh
+            - -c
+            - |
+              echo "Checking external reachability (expect BLOCKED)..."
+              if curl -s -m 5 -o /dev/null https://8.8.8.8/; then
+                echo "ISOLATION FAILURE: reached external host"; exit 1
+              fi
+              echo "PASS: external host unreachable, NetworkPolicy isolation confirmed"
+              exit 0

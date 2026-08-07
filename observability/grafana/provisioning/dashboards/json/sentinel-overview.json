@@ -1,0 +1,75 @@
+{
+  "title": "SENTINEL LAB - Overview",
+  "uid": "sentinel-overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Requests/sec (web target)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(target_http_requests_total[15s])) by (instance)", "legendFormat": "{{instance}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "HTTP Latency p95",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(target_http_request_duration_seconds_bucket[1m])) by (le))", "legendFormat": "p95" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Active Connections (all targets)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "sum(target_active_connections) by (instance)", "legendFormat": "http {{instance}}" },
+        { "expr": "sum(target_tcp_active_connections) by (instance)", "legendFormat": "tcp {{instance}}" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "UDP Packets/sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "sum(rate(target_udp_packets_total[15s])) by (instance)", "legendFormat": "{{instance}}" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Classifier Confidence (attack probability)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "defense_classifier_attack_confidence", "legendFormat": "confidence" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Mitigation Actions (rate limit changes)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        { "expr": "defense_rate_limit_threshold", "legendFormat": "threshold" },
+        { "expr": "increase(defense_mitigation_actions_total[1m])", "legendFormat": "actions/min" }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Error Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "targets": [
+        { "expr": "sum(rate(target_http_errors_total[15s])) by (instance)", "legendFormat": "{{instance}}" }
+      ]
+    }
+  ]
+}

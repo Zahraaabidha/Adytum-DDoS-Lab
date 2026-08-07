@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SENTINEL LAB Benchmark Report — {{ run_name }}</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; margin: 40px; color: #1a202c; }
+  h1 { font-size: 22px; border-bottom: 3px solid #b91c1c; padding-bottom: 8px; }
+  .badge { display:inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .badge.attack { background:#fee2e2; color:#991b1b; }
+  .badge.control { background:#dbeafe; color:#1e3a8a; }
+  table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+  td, th { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; font-size: 14px; }
+  th { background: #f8fafc; width: 280px; }
+  .footer { margin-top: 24px; font-size: 12px; color: #64748b; }
+</style>
+</head>
+<body>
+  <h1>SENTINEL LAB Benchmark Report</h1>
+  <p>
+    Run: <b>{{ run_name }}</b>
+    {% if is_control %}<span class="badge control">LEGITIMATE-LOAD CONTROL RUN</span>
+    {% else %}<span class="badge attack">ATTACK SIMULATION</span>{% endif %}
+  </p>
+  <table>
+    <tr><th>Attack type(s)</th><td>{{ attack_types | join(", ") }}</td></tr>
+    <tr><th>Duration</th><td>{{ duration_s }} s</td></tr>
+    <tr><th>Total simulated requests/packets</th><td>{{ total_events }}</td></tr>
+    <tr><th>Peak requests/sec</th><td>{{ peak_rps }}</td></tr>
+    <tr><th>Average latency</th><td>{{ avg_latency_ms }} ms</td></tr>
+    <tr><th>p95 latency</th><td>{{ p95_latency_ms }} ms</td></tr>
+    <tr><th>Error rate</th><td>{{ error_rate }}%</td></tr>
+    {% if not is_control %}
+    <tr><th>Detection latency (attack start → first mitigation)</th>
+        <td>{{ detection_latency_s if detection_latency_s is not none else "no mitigation fired" }} s</td></tr>
+    {% else %}
+    <tr><th>False-positive rate (mitigation fired on legit traffic)</th>
+        <td>{{ false_positive_rate if false_positive_rate is not none else "0" }}%</td></tr>
+    {% endif %}
+    <tr><th>Mitigation actions during run</th><td>{{ mitigation_count }}</td></tr>
+  </table>
+  <p class="footer">Generated {{ generated_at }} — SENTINEL LAB is an isolated research/learning environment;
+  all traffic above originated and terminated inside the lab's own Docker network. See README.md.</p>
+</body>
+</html>

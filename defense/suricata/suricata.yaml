@@ -1,0 +1,33 @@
+# Minimal Suricata config for SENTINEL LAB.
+# Watches the target_net bridge (via af-packet on the container's own
+# interface) purely for flow/alert telemetry -- it never generates traffic.
+%YAML 1.1
+---
+vars:
+  address-groups:
+    HOME_NET: "[172.16.0.0/12,10.0.0.0/8,192.168.0.0/16]"
+    EXTERNAL_NET: "any"
+
+af-packet:
+  - interface: eth0
+    cluster-type: cluster_flow
+    defrag: yes
+
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: /var/log/suricata/eve.json
+      types:
+        - alert
+        - flow
+        - stats
+        - dns
+        - tcp
+
+default-rule-path: /etc/suricata/rules
+rule-files:
+  - ddos.rules
+
+logging:
+  default-log-level: notice

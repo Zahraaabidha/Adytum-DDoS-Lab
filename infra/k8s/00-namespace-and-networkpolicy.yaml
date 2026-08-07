@@ -1,0 +1,58 @@
+# SENTINEL LAB — Kubernetes isolation model.
+#
+# Mirrors the Docker Compose `internal: true` guarantee using a default-deny
+# NetworkPolicy: pods labeled `role: attacker` get NO egress rule to
+# anything outside the `sentinel-lab` namespace (no rule to 0.0.0.0/0, and
+# Kubernetes NetworkPolicies are deny-by-default once any policy selects a
+# pod). This must be applied and verified (see infra/k8s/verify-isolation-job.yaml)
+# before any attacker workload is trusted, exactly like the Compose isolation test.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sentinel-lab
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: attacker-default-deny-egress
+  namespace: sentinel-lab
+spec:
+  podSelector:
+    matchLabels:
+      role: attacker
+  policyTypes: ["Egress"]
+  egress:
+    # Only allow traffic to other pods inside this namespace (targets,
+    # rate-limiter). No rule permits traffic to any address outside the
+    # cluster-internal pod CIDR, so there is no path to the internet.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: sentinel-lab
+    # DNS must still work for in-cluster service name resolution.
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: target-default-deny-ingress-from-outside-namespace
+  namespace: sentinel-lab
+spec:
+  podSelector:
+    matchLabels:
+      role: target
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: sentinel-lab

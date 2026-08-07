@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>SENTINEL LAB — Unified Dashboard</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; height: 100%; overflow: hidden; font-family: system-ui, sans-serif; color: #1e293b; }
+  #banner {
+    height: 40px; display: flex; align-items: center; justify-content: center;
+    background: #b91c1c; color: white; font-weight: 600; font-size: 14px; letter-spacing: 0.02em;
+  }
+  #layout { display: flex; height: calc(100vh - 40px); }
+  #globeCol {
+    flex: 1.4; position: relative; min-width: 0;
+    background: radial-gradient(circle at 50% 45%, #dbeafe 0%, #eff6ff 45%, #ffffff 72%);
+  }
+  #globeViz { width: 100%; height: 100%; }
+  #legend {
+    position: absolute; bottom: 12px; left: 12px; z-index: 5;
+    color: #334155; font-size: 12px; background: rgba(255,255,255,0.9);
+    border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px; line-height: 1.5;
+  }
+  #sideCol { flex: 1; min-width: 380px; max-width: 460px; overflow-y: auto; padding: 12px; box-sizing: border-box; background: #f8fafc; border-left: 1px solid #e2e8f0; }
+  .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .card h3 { margin: 0 0 8px 0; font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+  .stat-row b { color: #0f172a; }
+  .confidence-bar { height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; margin-top: 6px; }
+  .confidence-fill { height: 100%; background: linear-gradient(90deg,#22c55e,#eab308,#ef4444); transition: width 0.5s; }
+  iframe.panel { width: 100%; height: 160px; border: none; border-radius: 6px; background: #ffffff; }
+  #mitigations { max-height: 180px; overflow-y: auto; font-size: 12px; font-family: ui-monospace, monospace; }
+  #mitigations div { padding: 4px 0; border-bottom: 1px solid #e2e8f0; color: #334155; }
+  .links { font-size: 12px; }
+  .links a { color: #2563eb; }
+  .attack-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+  .attack-row:last-child { border-bottom: none; }
+  .attack-row .name { color: #0f172a; font-weight: 500; }
+  .attack-row .badge { font-size: 10px; padding: 2px 6px; border-radius: 999px; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .badge.running { background: #dcfce7; color: #166534; }
+  .badge.stopped { background: #f1f5f9; color: #64748b; }
+  .attack-row button {
+    font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid transparent;
+    cursor: pointer; font-weight: 500;
+  }
+  .btn-start { background: #2563eb; color: #fff; }
+  .btn-start:hover { background: #1d4ed8; }
+  .btn-stop { background: #fff; color: #b91c1c; border-color: #fecaca; }
+  .btn-stop:hover { background: #fef2f2; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .card.live-real { border-color: #fbbf24; background: #fffbeb; }
+  .card.live-real h3 { color: #b45309; }
+  .live-real .stat-row b { color: #78350f; }
+  #liveRealNote { font-size: 11px; color: #92400e; margin-top: 6px; }
+  #hero {
+    position: absolute; top: 16px; left: 0; right: 0; z-index: 5; text-align: center;
+    pointer-events: none;
+  }
+  #hero h1 { margin: 0; font-size: 22px; font-weight: 700; color: #0f172a; letter-spacing: 0.01em; }
+  #hero p { margin: 4px 0 0; font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+  <div id="banner">⚠ Simulated attack origins — synthetic data, lab environment only. No real-world traffic or IP geolocation is shown.</div>
+  <div id="layout">
+    <div id="globeCol">
+      <div id="hero">
+        <h1>SENTINEL LAB — live attack simulation</h1>
+        <p>Synthetic attacker origins converging on the internal target</p>
+      </div>
+      <div id="globeViz"></div>
+      <div id="legend">
+        <div><span style="color:#ff5c5c">●</span> Attack traffic (synthetic origin)</div>
+        <div><span style="color:#5cb8ff">●</span> Legitimate load traffic</div>
+        <div style="margin-top:4px;opacity:0.7">Target: SENTINEL LAB (internal Docker network)</div>
+      </div>
+    </div>
+    <div id="sideCol">
+      <div class="card">
+        <h3>Sandbox controls</h3>
+        <div id="attackControls">Loading attack controls…</div>
+      </div>
+      <div class="card live-real">
+        <h3>⬤ Live traffic (REAL — this machine)</h3>
+        <div id="liveReal">Connecting to live-agent…</div>
+        <div id="liveRealNote">Real connection-table data (like netstat) for this machine only. Not part of the synthetic lab. Start it with: <code>python live-agent/agent.py</code></div>
+      </div>
+      <div class="card">
+        <h3>Live feed</h3>
+        <div id="stats">Loading synthetic attacker feed…</div>
+      </div>
+      <div class="card">
+        <h3>Classifier confidence &amp; mitigation</h3>
+        <div class="stat-row"><span>Attack confidence</span><b id="confidenceVal">–</b></div>
+        <div class="confidence-bar"><div class="confidence-fill" id="confidenceBar" style="width:0%"></div></div>
+        <div class="stat-row" style="margin-top:8px"><span>Adaptive rate-limit threshold</span><b id="thresholdVal">–</b></div>
+      </div>
+      <div class="card">
+        <h3>Requests/sec (web target)</h3>
+        <iframe class="panel" src="http://localhost:3000/d-solo/sentinel-overview/sentinel-lab-overview?orgId=1&panelId=1&theme=light&refresh=5s&kiosk"></iframe>
+      </div>
+      <div class="card">
+        <h3>Classifier confidence over time</h3>
+        <iframe class="panel" src="http://localhost:3000/d-solo/sentinel-overview/sentinel-lab-overview?orgId=1&panelId=5&theme=light&refresh=5s&kiosk"></iframe>
+      </div>
+      <div class="card">
+        <h3>Recent mitigation actions</h3>
+        <div id="mitigations">loading…</div>
+      </div>
+      <div class="card links">
+        <div>Full Grafana dashboard: <a href="http://localhost:3000/d/sentinel-overview" target="_blank">localhost:3000</a></div>
+        <div>Prometheus: <a href="http://localhost:9090" target="_blank">localhost:9090</a></div>
+        <div>Defense engine API: <a href="http://localhost:9300" target="_blank">localhost:9300</a></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/amcharts5-index.js"></script>
+  <script src="vendor/amcharts5-map.js"></script>
+  <script src="vendor/geodata/worldLow.js"></script>
+  <script src="vendor/themes/Animated.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

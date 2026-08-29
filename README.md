@@ -156,14 +156,6 @@ kubectl apply -f infra/k8s/verify-isolation-job.yaml
 
 kubectl wait --for=condition=complete job/verify-isolation \
   -n sentinel-lab --timeout=60s
-```
-
-## Documentation
-
-For detailed implementation stages and project progress:
-
-* `PROJECT_EXECUTION_PLAN.md`
-* `PROJECT_STATE.md`
 
 ---
 

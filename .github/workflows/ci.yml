@@ -15,7 +15,65 @@ jobs:
       - name: Install lint tools
         run: pip install ruff
       - name: Lint (ruff)
-        run: ruff check attackers defense globe reports tests
+        run: ruff check attackers defense globe reports tests services/threat-intel
+
+  threat-intel-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: migtest
+          POSTGRES_DB: migtest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MIGRATION_TEST_DATABASE_URL: postgresql+asyncpg://postgres:migtest@localhost:5432/migtest
+    defaults:
+      run:
+        working-directory: services/threat-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/threat-intel/requirements-dev.txt
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Type-check (mypy)
+        run: mypy --ignore-missing-imports app
+      # Provider/correlation tests mock the DB, Redis and defense-engine; the Postgres service
+      # above is only used by tests/test_migrations.py.
+      - name: Run tests
+        run: pytest -v
+
+  dashboard-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      # --legacy-peer-deps matches dashboard/Dockerfile (openapi-typescript peers on TS 5.x).
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Type-check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
 
   classifier-unit-tests:
     runs-on: ubuntu-latest
@@ -28,8 +86,8 @@ jobs:
         run: |
           pip install -r tests/requirements.txt
           pip install -r defense/requirements.txt
-      - name: Run classifier unit tests
-        run: pytest tests/test_classifier.py -v
+      - name: Run unit tests (classifier, detection metrics, globe controls)
+        run: pytest tests -v
 
   network-isolation-and-smoke-test:
     runs-on: ubuntu-latest
@@ -39,8 +97,10 @@ jobs:
       - name: Verify network isolation (MUST pass before anything else)
         run: bash tests/test_network_isolation.sh
 
-      - name: Bring up target infra + observability
-        run: docker compose up -d --build web lb tcp-service dns-udp prometheus
+      # The load generators below aim at rate-limiter (which needs defense-engine), so both must be up,
+      # otherwise every simulated request fails to connect and the smoke runs prove nothing.
+      - name: Bring up target infra, defense and observability
+        run: docker compose up -d --build web lb tcp-service dns-udp prometheus defense-engine rate-limiter
 
       - name: Wait for web target to be healthy
         run: |

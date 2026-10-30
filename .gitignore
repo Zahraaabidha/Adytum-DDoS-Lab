@@ -2,7 +2,7 @@ __pycache__/
 *.pyc
 .venv/
 attackers/recordings/*.jsonl
-defense/classifier/model.joblib
+defense/classifier/model*.joblib
 defense/mitigation_log.jsonl
 reports/output/
 .terraform/
@@ -16,3 +16,15 @@ node_modules/
 dist/
 services/threat-intel/.env
 services/threat-intel/data/
+defense/classifier/evaluation*.json
+defense/feature_log.jsonl
+defense/suricata_state.json
+defense/classifier/mitigation-comparison*.json
+# Selected default model and its rollback are meant to be shared: un-ignore them (staging is up to you).
+!defense/classifier/model.candidate.joblib
+!defense/classifier/evaluation.candidate.json
+!defense/classifier/model.joblib
+!defense/classifier/evaluation.json
+!defense/classifier/mitigation-comparison.json
+# Accidental shell-typo file
+/e config --quiet

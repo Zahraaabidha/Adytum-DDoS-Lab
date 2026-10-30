@@ -1,0 +1,17 @@
+# SENTINEL LAB rules for the UDP and TCP taps (`suricata-udp`, `suricata-tcp`), each sharing the network namespace of
+# ONE replica (of two) of dns-udp / tcp-service. Thresholds are per source, per 10 s, as seen by that replica, and come
+# from defense/suricata/calibrate.py runs (two repetitions each), not estimates:
+#
+#   UDP packets to :5300     legitimate 10 pps 67-70, 50 pps 264-266, 10 pps + 200-packet burst 158-168
+#                            UDP flood 4145-4612            -> 1000 (geometric mean 1050)
+#   TCP SYNs to :9000        legitimate 2 conn/s 13-18, 10 conn/s 53-59, 10 conn/s + 40-connection burst 59-66
+#                            TCP exhaustion (200 connections) 103-108  -> 80 (geometric mean 82)
+#
+# The TCP margin is thin (legitimate maximum 66, attack minimum 103): a single source opening more than about 10
+# connections per second looks like the exhaustion attack, and a smaller exhaustion attack would go unnoticed.
+# A UDP rule needs a packet-level keyword (`dsize:>0`): without one Suricata treats it as IP-only and evaluates it once
+# per flow, so the per-source threshold would never accumulate.
+
+alert udp any any -> any 5300 (msg:"SENTINEL LAB: possible UDP flood"; dsize:>0; threshold:type both, track by_src, count 1000, seconds 10; classtype:attempted-dos; sid:1000003; rev:4;)
+
+alert tcp any any -> any 9000 (msg:"SENTINEL LAB: possible TCP connection exhaustion"; flags:S; threshold:type both, track by_src, count 80, seconds 10; classtype:attempted-dos; sid:1000004; rev:3;)

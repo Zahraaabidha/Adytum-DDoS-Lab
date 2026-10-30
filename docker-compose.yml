@@ -82,14 +82,15 @@ services:
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"
+      - "${SENTINEL_BIND:-127.0.0.1}:9090:9090"
     depends_on: [web, tcp-service, dns-udp]
 
   grafana:
     image: grafana/grafana:11.2.0
     networks: [target_net, public_net]
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: sentinel
+      # Local-lab default; anonymous access is Viewer-only. Override for anything beyond localhost.
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-sentinel}
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_SECURITY_ALLOW_EMBEDDING: "true"
@@ -106,7 +107,7 @@ services:
     volumes:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
     ports:
-      - "3000:3000"
+      - "${SENTINEL_BIND:-127.0.0.1}:3000:3000"
     depends_on: [prometheus]
 
   # ---------------------------------------------------------------------------
@@ -118,11 +119,21 @@ services:
     environment:
       PROMETHEUS_URL: http://prometheus:9090
       RECORDINGS_DIR: /app/recordings
+      # Selected default model: the candidate (see README, "Model selection"). The original model.joblib is kept
+      # untouched for rollback: SENTINEL_MODEL_PATH=/app/classifier/model.joblib docker compose up -d defense-engine
+      MODEL_PATH: ${SENTINEL_MODEL_PATH:-/app/classifier/model.candidate.joblib}
+      EVALUATION_PATH: ${SENTINEL_EVALUATION_PATH:-/app/classifier/evaluation.candidate.json}
+      # guarded (default) or linear, the original confidence -> cap mapping
+      MITIGATION_POLICY: ${MITIGATION_POLICY:-guarded}
+      # protective cap = headroom x the recent peak of normal load (README, "Model selection")
+      MITIGATION_HEADROOM: ${MITIGATION_HEADROOM:-6}
     volumes:
       - ./defense:/app
       - attacker-recordings:/app/recordings:ro
+      # Suricata's EVE JSON, read-only: alerts are shown and correlated, never used to block traffic
+      - suricata-logs:/var/log/suricata:ro
     ports:
-      - "9300:9300"
+      - "${SENTINEL_BIND:-127.0.0.1}:9300:9300"
     depends_on: [prometheus]
 
   rate-limiter:
@@ -131,6 +142,8 @@ services:
     environment:
       UPSTREAM_URL: http://lb:8000
       ENGINE_URL: http://defense-engine:9300
+      # fair (default) shares the cap between source addresses; global is first-come-first-served
+      LIMITER_MODE: ${LIMITER_MODE:-fair}
     depends_on: [lb, defense-engine]
 
   # Shares rate-limiter's network namespace so it observes traffic at the
@@ -145,8 +158,56 @@ services:
       - ./defense/suricata/suricata.yaml:/etc/suricata/suricata.yaml
       - ./defense/suricata/ddos.rules:/etc/suricata/rules/ddos.rules
       - suricata-logs:/var/log/suricata
-    command: ["-i", "eth0"]
+      - ./defense/suricata/rotate-eve.sh:/usr/local/bin/rotate-eve.sh:ro
+    entrypoint: ["/bin/sh", "-c", "/bin/sh /usr/local/bin/rotate-eve.sh /var/log/suricata/eve.json ${SURICATA_ROTATE_SECONDS:-3600} ${SURICATA_ROTATE_BYTES:-52428800} ${SURICATA_KEEP_ROTATED:-6} & exec /docker-entrypoint.sh \"$$@\"", "sh"]
+    command: ["--af-packet"]
     depends_on: [rate-limiter]
+
+  # Passive target taps. UDP flood and TCP exhaustion go straight to dns-udp / tcp-service on target_net and never
+  # pass the rate-limiter, so the ingress sensor above cannot see them. Each tap joins the network namespace of one
+  # target container (no new network, route or port; traffic paths and metrics are unchanged), sniffs eth0 only and
+  # writes its own EVE file, which defense-engine reads like the ingress one. A tap sees one replica of its target
+  # (the targets run two), i.e. roughly half of the traffic: defense/suricata/target-tap.rules is sized for that.
+  suricata-udp:
+    image: jasonish/suricata:7.0.3
+    network_mode: "service:dns-udp"
+    cap_add: ["NET_ADMIN", "NET_RAW", "SYS_NICE"]
+    volumes:
+      - ./defense/suricata/suricata.yaml:/etc/suricata/suricata.yaml
+      - ./defense/suricata/target-tap.rules:/etc/suricata/rules/ddos.rules
+      - suricata-logs:/var/log/suricata
+      - ./defense/suricata/rotate-eve.sh:/usr/local/bin/rotate-eve.sh:ro
+    entrypoint: ["/bin/sh", "-c", "/bin/sh /usr/local/bin/rotate-eve.sh /var/log/suricata/eve-udp.json ${SURICATA_ROTATE_SECONDS:-3600} ${SURICATA_ROTATE_BYTES:-52428800} ${SURICATA_KEEP_ROTATED:-6} & exec /docker-entrypoint.sh \"$$@\"", "sh"]
+    command: ["-i", "eth0", "--set", "outputs.0.eve-log.filename=eve-udp.json"]
+    depends_on: [dns-udp]
+
+  suricata-tcp:
+    image: jasonish/suricata:7.0.3
+    network_mode: "service:tcp-service"
+    cap_add: ["NET_ADMIN", "NET_RAW", "SYS_NICE"]
+    volumes:
+      - ./defense/suricata/suricata.yaml:/etc/suricata/suricata.yaml
+      - ./defense/suricata/target-tap.rules:/etc/suricata/rules/ddos.rules
+      - suricata-logs:/var/log/suricata
+      - ./defense/suricata/rotate-eve.sh:/usr/local/bin/rotate-eve.sh:ro
+    entrypoint: ["/bin/sh", "-c", "/bin/sh /usr/local/bin/rotate-eve.sh /var/log/suricata/eve-tcp.json ${SURICATA_ROTATE_SECONDS:-3600} ${SURICATA_ROTATE_BYTES:-52428800} ${SURICATA_KEEP_ROTATED:-6} & exec /docker-entrypoint.sh \"$$@\"", "sh"]
+    command: ["-i", "eth0", "--set", "outputs.0.eve-log.filename=eve-tcp.json"]
+    depends_on: [tcp-service]
+
+  # Slowloris goes straight to web:8000, bypassing the rate-limiter, so it gets its own tap like UDP and TCP. The web
+  # target runs three replicas and the attacker resolves the name per connection, so this tap sees about a third.
+  suricata-web:
+    image: jasonish/suricata:7.0.3
+    network_mode: "service:web"
+    cap_add: ["NET_ADMIN", "NET_RAW", "SYS_NICE"]
+    volumes:
+      - ./defense/suricata/suricata.yaml:/etc/suricata/suricata.yaml
+      - ./defense/suricata/web-tap.rules:/etc/suricata/rules/ddos.rules
+      - suricata-logs:/var/log/suricata
+      - ./defense/suricata/rotate-eve.sh:/usr/local/bin/rotate-eve.sh:ro
+    entrypoint: ["/bin/sh", "-c", "/bin/sh /usr/local/bin/rotate-eve.sh /var/log/suricata/eve-web.json ${SURICATA_ROTATE_SECONDS:-3600} ${SURICATA_ROTATE_BYTES:-52428800} ${SURICATA_KEEP_ROTATED:-6} & exec /docker-entrypoint.sh \"$$@\"", "sh"]
+    command: ["-i", "eth0", "--set", "outputs.0.eve-log.filename=eve-web.json"]
+    depends_on: [web]
 
   # ---------------------------------------------------------------------------
   # Attack simulation engine (stage 3) — isolated on attacker_net, only
@@ -246,10 +307,12 @@ services:
       # globe container real control over the Docker host -- standard for
       # this "sibling container" pattern, but worth knowing it's more
       # privilege than a plain dashboard needs.
+      # SECURITY: docker.sock is root-equivalent on the host and the globe API is unauthenticated, so every
+      # published port is bound to 127.0.0.1 (SENTINEL_BIND). Never expose port 8090 beyond the local machine.
       - .:/workspace:ro
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "8090:8090"
+      - "${SENTINEL_BIND:-127.0.0.1}:8090:8090"
 
   # ---------------------------------------------------------------------------
   # Global Threat Intelligence (Stage D) — completely separate module from the
@@ -300,7 +363,7 @@ services:
     volumes:
       - threat-intel-geoip:/app/data/geoip
     ports:
-      - "9400:9400"
+      - "${SENTINEL_BIND:-127.0.0.1}:9400:9400"
     depends_on:
       threat-intel-db:
         condition: service_healthy
@@ -318,7 +381,7 @@ services:
     build: ./dashboard
     networks: [public_net]
     ports:
-      - "8080:8080"
+      - "${SENTINEL_BIND:-127.0.0.1}:8080:8080"
     depends_on: [threat-intel, globe, grafana]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]

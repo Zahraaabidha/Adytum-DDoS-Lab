@@ -31,14 +31,22 @@ class SimEvent:
 
 class Recorder:
     def __init__(self, run_name: str):
+        self.run_name = run_name
         self.path = RECORDINGS_DIR / f"{run_name}.jsonl"
         self._fh = open(self.path, "a", buffering=1, encoding="utf-8")
+        self._start_ts = time.time()
+        self._attack_type: Optional[str] = None
 
     def record(self, event: SimEvent):
+        self._attack_type = event.attack_type
         self._fh.write(json.dumps(asdict(event)) + "\n")
 
     def close(self):
         self._fh.close()
+        # The events alone don't say how long the run lasted (tcp_exhaustion, for one, logs every
+        # connection in the first instant and then just holds them), so keep the run's real span.
+        meta = {"run": self.run_name, "attack_type": self._attack_type, "start_ts": self._start_ts, "end_ts": time.time()}
+        self.path.with_suffix(".meta.json").write_text(json.dumps(meta), encoding="utf-8")
 
 
 def replay(run_name: str):

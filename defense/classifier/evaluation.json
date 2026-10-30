@@ -1,0 +1,400 @@
+{
+  "generated_at": "2026-10-29T16:50:29.540628+00:00",
+  "trained_on": [
+    "live_legit_train_burst",
+    "live_legit_train_burst2",
+    "live_legit_train_steady"
+  ],
+  "feature_names": [
+    "request_rate",
+    "avg_connection_duration",
+    "inter_arrival_std",
+    "error_rate",
+    "active_connections",
+    "established_connections"
+  ],
+  "sample_unit": "engine feature samples (one per 5s poll; the 15s rate windows overlap, so neighbours are correlated)",
+  "samples": {
+    "normal": 56,
+    "attack": 68
+  },
+  "metrics": {
+    "true_positives": 68,
+    "false_positives": 2,
+    "true_negatives": 54,
+    "false_negatives": 0,
+    "precision": 0.9714285714285714,
+    "recall": 1.0,
+    "false_positive_rate": 0.03571428571428571,
+    "f1": 0.9855072463768115,
+    "accuracy": 0.9838709677419355,
+    "threshold": 0.5
+  },
+  "normal": {
+    "samples": 56,
+    "false_positives": 2
+  },
+  "idle": {
+    "samples": 151,
+    "false_positives": 0
+  },
+  "by_type": [
+    {
+      "attack_type": "http_flood",
+      "runs": 1,
+      "samples": 15,
+      "flagged": 15,
+      "low_sample": false,
+      "metrics": {
+        "true_positives": 15,
+        "false_positives": 2,
+        "true_negatives": 54,
+        "false_negatives": 0,
+        "precision": 0.8823529411764706,
+        "recall": 1.0,
+        "false_positive_rate": 0.03571428571428571,
+        "f1": 0.9375,
+        "accuracy": 0.971830985915493,
+        "threshold": 0.5
+      }
+    },
+    {
+      "attack_type": "slowloris",
+      "runs": 1,
+      "samples": 17,
+      "flagged": 17,
+      "low_sample": false,
+      "metrics": {
+        "true_positives": 17,
+        "false_positives": 2,
+        "true_negatives": 54,
+        "false_negatives": 0,
+        "precision": 0.8947368421052632,
+        "recall": 1.0,
+        "false_positive_rate": 0.03571428571428571,
+        "f1": 0.9444444444444444,
+        "accuracy": 0.9726027397260274,
+        "threshold": 0.5
+      }
+    },
+    {
+      "attack_type": "tcp_exhaustion",
+      "runs": 3,
+      "samples": 27,
+      "flagged": 27,
+      "low_sample": false,
+      "metrics": {
+        "true_positives": 27,
+        "false_positives": 2,
+        "true_negatives": 54,
+        "false_negatives": 0,
+        "precision": 0.9310344827586207,
+        "recall": 1.0,
+        "false_positive_rate": 0.03571428571428571,
+        "f1": 0.9642857142857143,
+        "accuracy": 0.9759036144578314,
+        "threshold": 0.5
+      }
+    },
+    {
+      "attack_type": "udp_flood",
+      "runs": 1,
+      "samples": 9,
+      "flagged": 9,
+      "low_sample": true,
+      "metrics": {
+        "true_positives": 9,
+        "false_positives": 2,
+        "true_negatives": 54,
+        "false_negatives": 0,
+        "precision": 0.8181818181818182,
+        "recall": 1.0,
+        "false_positive_rate": 0.03571428571428571,
+        "f1": 0.9,
+        "accuracy": 0.9692307692307692,
+        "threshold": 0.5
+      }
+    }
+  ],
+  "runs": [
+    {
+      "run": "final_legit_holdout_burst",
+      "attack_type": "legitimate_load",
+      "label": "normal",
+      "samples": 28,
+      "flagged": 2,
+      "events": 856,
+      "warnings": []
+    },
+    {
+      "run": "final_legit_holdout_steady",
+      "attack_type": "legitimate_load",
+      "label": "normal",
+      "samples": 28,
+      "flagged": 0,
+      "events": 590,
+      "warnings": []
+    },
+    {
+      "run": "final_http_flood",
+      "attack_type": "http_flood",
+      "label": "attack",
+      "samples": 15,
+      "flagged": 15,
+      "events": 9461,
+      "warnings": []
+    },
+    {
+      "run": "final_slowloris",
+      "attack_type": "slowloris",
+      "label": "attack",
+      "samples": 17,
+      "flagged": 17,
+      "events": 950,
+      "warnings": []
+    },
+    {
+      "run": "final_udp_flood",
+      "attack_type": "udp_flood",
+      "label": "attack",
+      "samples": 9,
+      "flagged": 9,
+      "events": 54374,
+      "warnings": []
+    },
+    {
+      "run": "final_tcp_a",
+      "attack_type": "tcp_exhaustion",
+      "label": "attack",
+      "samples": 9,
+      "flagged": 9,
+      "events": 200,
+      "warnings": []
+    },
+    {
+      "run": "final_tcp_b",
+      "attack_type": "tcp_exhaustion",
+      "label": "attack",
+      "samples": 9,
+      "flagged": 9,
+      "events": 200,
+      "warnings": []
+    },
+    {
+      "run": "final_tcp_c",
+      "attack_type": "tcp_exhaustion",
+      "label": "attack",
+      "samples": 9,
+      "flagged": 9,
+      "events": 200,
+      "warnings": []
+    }
+  ],
+  "excluded": [
+    {
+      "run": "http_flood_run",
+      "events": 189935,
+      "reason": "target never responded: 100% of 189935 http_flood events have no HTTP status (attacker-side connection failures, not traffic the target handled)"
+    },
+    {
+      "run": "live_legit_train_burst",
+      "events": 763,
+      "reason": "used for training"
+    },
+    {
+      "run": "live_legit_train_burst2",
+      "events": 843,
+      "reason": "used for training"
+    },
+    {
+      "run": "live_legit_train_steady",
+      "events": 549,
+      "reason": "used for training"
+    }
+  ],
+  "unlabeled_samples": {
+    "warm-up/cool-down margin": 169
+  },
+  "unparseable_feature_log_lines": 0,
+  "live": {
+    "samples": {
+      "normal": 44,
+      "attack": 44
+    },
+    "metrics": {
+      "true_positives": 44,
+      "false_positives": 3,
+      "true_negatives": 41,
+      "false_negatives": 0,
+      "precision": 0.9361702127659575,
+      "recall": 1.0,
+      "false_positive_rate": 0.06818181818181818,
+      "f1": 0.967032967032967,
+      "accuracy": 0.9659090909090909,
+      "threshold": 0.5
+    },
+    "normal": {
+      "samples": 44,
+      "false_positives": 3,
+      "mitigation": {
+        "min_threshold_rps": 263.6260776761159,
+        "requests": 1170,
+        "blocked": 0,
+        "blocked_fraction": 0.0
+      }
+    },
+    "idle": {
+      "samples": 20,
+      "false_positives": 0
+    },
+    "by_type": [
+      {
+        "attack_type": "http_flood",
+        "runs": 1,
+        "samples": 14,
+        "flagged": 14,
+        "low_sample": false,
+        "metrics": {
+          "true_positives": 14,
+          "false_positives": 3,
+          "true_negatives": 41,
+          "false_negatives": 0,
+          "precision": 0.8235294117647058,
+          "recall": 1.0,
+          "false_positive_rate": 0.06818181818181818,
+          "f1": 0.9032258064516129,
+          "accuracy": 0.9482758620689655,
+          "threshold": 0.5
+        },
+        "mitigation": {
+          "min_threshold_rps": 68.36066943424824,
+          "requests": 39645,
+          "blocked": 32020,
+          "blocked_fraction": 0.8076680539790642
+        }
+      },
+      {
+        "attack_type": "slowloris",
+        "runs": 1,
+        "samples": 12,
+        "flagged": 12,
+        "low_sample": false,
+        "metrics": {
+          "true_positives": 12,
+          "false_positives": 3,
+          "true_negatives": 41,
+          "false_negatives": 0,
+          "precision": 0.8,
+          "recall": 1.0,
+          "false_positive_rate": 0.06818181818181818,
+          "f1": 0.888888888888889,
+          "accuracy": 0.9464285714285714,
+          "threshold": 0.5
+        },
+        "mitigation": {
+          "min_threshold_rps": 10.674812304232063
+        }
+      },
+      {
+        "attack_type": "tcp_exhaustion",
+        "runs": 1,
+        "samples": 9,
+        "flagged": 9,
+        "low_sample": true,
+        "metrics": {
+          "true_positives": 9,
+          "false_positives": 3,
+          "true_negatives": 41,
+          "false_negatives": 0,
+          "precision": 0.75,
+          "recall": 1.0,
+          "false_positive_rate": 0.06818181818181818,
+          "f1": 0.8571428571428571,
+          "accuracy": 0.9433962264150944,
+          "threshold": 0.5
+        },
+        "mitigation": {
+          "min_threshold_rps": 8.206327780850648
+        }
+      },
+      {
+        "attack_type": "udp_flood",
+        "runs": 1,
+        "samples": 9,
+        "flagged": 9,
+        "low_sample": true,
+        "metrics": {
+          "true_positives": 9,
+          "false_positives": 3,
+          "true_negatives": 41,
+          "false_negatives": 0,
+          "precision": 0.75,
+          "recall": 1.0,
+          "false_positive_rate": 0.06818181818181818,
+          "f1": 0.8571428571428571,
+          "accuracy": 0.9433962264150944,
+          "threshold": 0.5
+        },
+        "mitigation": {
+          "min_threshold_rps": 13.779563283659861
+        }
+      }
+    ],
+    "runs": [
+      {
+        "run": "e2e_legit_burst",
+        "attack_type": "legitimate_load",
+        "label": "normal",
+        "samples": 22,
+        "flagged": 2,
+        "events": 702,
+        "warnings": []
+      },
+      {
+        "run": "e2e_http_flood",
+        "attack_type": "http_flood",
+        "label": "attack",
+        "samples": 14,
+        "flagged": 14,
+        "events": 39645,
+        "warnings": []
+      },
+      {
+        "run": "e2e_slowloris",
+        "attack_type": "slowloris",
+        "label": "attack",
+        "samples": 12,
+        "flagged": 12,
+        "events": 650,
+        "warnings": []
+      },
+      {
+        "run": "e2e_udp_flood",
+        "attack_type": "udp_flood",
+        "label": "attack",
+        "samples": 9,
+        "flagged": 9,
+        "events": 53922,
+        "warnings": []
+      },
+      {
+        "run": "e2e_tcp",
+        "attack_type": "tcp_exhaustion",
+        "label": "attack",
+        "samples": 9,
+        "flagged": 9,
+        "events": 200,
+        "warnings": []
+      },
+      {
+        "run": "e2e_legit_steady",
+        "attack_type": "legitimate_load",
+        "label": "normal",
+        "samples": 22,
+        "flagged": 1,
+        "events": 468,
+        "warnings": []
+      }
+    ]
+  }
+}

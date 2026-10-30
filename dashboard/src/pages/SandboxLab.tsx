@@ -2,6 +2,8 @@ import { Card, EmptyState } from "../components/ui";
 import { AttackControls } from "../components/sandbox/AttackControls";
 import { GrafanaPanel } from "../components/sandbox/GrafanaPanel";
 import { MitigationLogTable } from "../components/sandbox/MitigationLogTable";
+import { IncidentList } from "../components/sandbox/IncidentList";
+import { SuricataAlerts } from "../components/sandbox/SuricataAlerts";
 import { useSandboxFeed } from "../lib/sandboxApi";
 
 /**
@@ -64,6 +66,10 @@ export function SandboxLab() {
           </div>
         )}
       </Card>
+
+      <IncidentList />
+
+      <SuricataAlerts />
 
       <MitigationLogTable />
     </div>

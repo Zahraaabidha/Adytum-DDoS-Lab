@@ -1,22 +1,97 @@
 import { Line, LineChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
-import { Card, EmptyState, StatTile } from "../components/ui";
-import { useMitigations, useDefenseThreshold } from "../lib/defenseEngineApi";
+import { Badge, Card, EmptyState, StatTile } from "../components/ui";
+import type { DetectionNormal, DetectionTypeResult } from "../types/threat";
+import {
+  useMitigations,
+  useDefenseThreshold,
+  useDetectionEvaluation,
+  useMitigationReport,
+  useDefenseEngineHealth,
+} from "../lib/defenseEngineApi";
 import { useThreatsStats, useThreatsTimeline, useThreatsTypes } from "../lib/queries";
 
 /**
  * Sandbox vs. global comparison (Stage G). Deliberately shows only metrics
  * the backends actually expose: `defense-engine`'s `/mitigations` gives a
  * confidence/threshold timeline and an action count, `threat-intel`'s
- * `/api/threats/{timeline,types,stats}` gives real ingestion volume. There
- * is no precision/recall/false-positive-rate computation anywhere in
- * either backend (no ground-truth labels exist to compute them from), so
- * none are shown or estimated here -- adding that would be inventing a
- * number the platform doesn't measure, which the project's no-fabrication
- * rule (PROJECT_EXECUTION_PLAN.md Safety Requirement 5) forbids.
+ * `/api/threats/{timeline,types,stats}` gives real ingestion volume.
+ * Precision/recall/FPR are shown only when `defense-engine`'s `/evaluation`
+ * serves a report produced by `classifier/evaluate.py` from labeled
+ * recordings; with no report the section shows an empty state rather than
+ * an estimate (the project's no-fabrication rule).
  */
+const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
+
+/** Per-traffic-type detection results. */
+function ResultTable({
+  rows,
+  normal,
+  idle,
+}: {
+  rows: DetectionTypeResult[];
+  normal: DetectionNormal;
+  idle: DetectionNormal;
+}) {
+  const falseRate = (row: DetectionNormal) => percent(row.false_positives / Math.max(row.samples, 1));
+  return (
+    <table className="mb-4 w-full text-left text-xs text-slate-300">
+      <thead className="text-slate-500">
+        <tr>
+          <th className="py-1 font-medium">Traffic type</th>
+          <th className="py-1 font-medium">Samples</th>
+          <th className="py-1 font-medium">Flagged</th>
+          <th className="py-1 font-medium">Precision</th>
+          <th className="py-1 font-medium">Recall</th>
+          <th className="py-1 font-medium">F1</th>
+        </tr>
+      </thead>
+      <tbody>
+        {[
+          { label: "legitimate", row: normal },
+          { label: "idle (no traffic)", row: idle },
+        ].map(({ label, row }) => (
+          <tr key={label} className="border-t border-white/5">
+            <td className="py-1">{label}</td>
+            <td className="py-1">{row.samples}</td>
+            <td className="py-1">{row.false_positives} false</td>
+            <td className="py-1" colSpan={3}>
+              false-positive rate {falseRate(row)}
+            </td>
+          </tr>
+        ))}
+        {rows.map((row) => (
+          <tr key={row.attack_type} className="border-t border-white/5">
+            <td className="py-1">
+              {row.attack_type}
+              {row.low_sample && <span className="ml-2 text-amber-400">low sample</span>}
+            </td>
+            <td className="py-1">{row.samples}</td>
+            <td className="py-1">{row.flagged}</td>
+            <td className="py-1">{percent(row.metrics.precision)}</td>
+            <td className="py-1">{percent(row.metrics.recall)}</td>
+            <td className="py-1">{row.metrics.f1.toFixed(3)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+const SCENARIO_LABEL: Record<string, string> = {
+  legit: "Legitimate alone",
+  flood: "Flood alone",
+  dist: "Distributed flood alone",
+  floodL: "Flood + legitimate",
+  distL: "Distributed flood + legitimate",
+  slowL: "Slowloris + legitimate (not HTTP-blockable)",
+};
+
 export function Analytics() {
   const { data: actions, isLoading: actionsLoading, isError: actionsError } = useMitigations(200);
   const { data: threshold, isError: thresholdError } = useDefenseThreshold();
+  const { data: evaluation, isLoading: evaluationLoading, isError: evaluationError } = useDetectionEvaluation();
+  const { data: mitigation, isLoading: mitigationLoading } = useMitigationReport();
+  const { data: engineHealth } = useDefenseEngineHealth();
   const { data: stats, isError: statsError } = useThreatsStats();
   const { data: timeline, isLoading: timelineLoading, isError: timelineError } = useThreatsTimeline("hour", 48);
   const { data: types, isLoading: typesLoading, isError: typesError } = useThreatsTypes();
@@ -45,6 +120,32 @@ export function Analytics() {
           />
         ) : (
           <>
+            <Card className="mb-4">
+              <p className="mb-2 text-xs font-medium text-slate-300">Active model and mitigation policy (selected default)</p>
+              {engineHealth && !engineHealth.model_loaded ? (
+                <p className="text-xs text-red-400">
+                  NO MODEL LOADED: detection is in pass-through mode (confidence 0) and nothing will be mitigated. Check
+                  MODEL_PATH / SENTINEL_MODEL_PATH and the engine log.
+                </p>
+              ) : engineHealth?.model ? (
+                <p className="text-xs text-slate-300">
+                  Model <span className="font-mono">{engineHealth.model.file}</span>, trained{" "}
+                  {engineHealth.model.trained_at ? new Date(engineHealth.model.trained_at).toLocaleDateString() : "?"} on{" "}
+                  {engineHealth.model.samples} live samples from {engineHealth.model.legit_runs.length} legitimate runs
+                  {engineHealth.model.idle_windows > 0 && ` plus ${engineHealth.model.idle_windows} idle window`}; boundary
+                  contamination {engineHealth.model.contamination}. Mitigation policy: {engineHealth.policy}.
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500">Loading...</p>
+              )}
+              <p className="mt-2 text-[11px] text-slate-500">
+                The candidate model is the selected default; the original model.joblib is kept for rollback (set
+                SENTINEL_MODEL_PATH=/app/classifier/model.joblib). Limitations: the rate limiter protects HTTP traffic only
+                (UDP, TCP and Slowloris are detected, not mitigated); concurrent legitimate requests are still partly
+                blocked during floods and mitigation starts only after a delay (measured in the lab comparison below);
+                training used synthetic lab traffic at one load level. See the README, &quot;Model selection&quot;.
+              </p>
+            </Card>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               <StatTile
                 label="Mitigation actions logged"
@@ -87,6 +188,187 @@ export function Analytics() {
               )}
             </Card>
           </>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-1 text-sm font-semibold text-slate-100">
+          <Badge tone="neutral">OFFLINE</Badge> Classifier evaluation on held-out runs
+        </h2>
+        <p className="mb-3 text-[11px] text-slate-500">
+          Live feature samples logged by the engine during labeled test runs the model was not trained on, re-scored
+          with the trained model while mitigation was inert. Measures detection only; no rate limiting involved.
+        </p>
+        {evaluationError || !evaluation || !evaluation.available ? (
+          <EmptyState
+            title={evaluationLoading ? "Loading..." : "No evaluation report yet"}
+            hint="Run defense/classifier/evaluate.py with --output on labeled recordings (see README) to populate this."
+          />
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <StatTile label="Precision" value={percent(evaluation.metrics.precision)} />
+              <StatTile label="Recall" value={percent(evaluation.metrics.recall)} />
+              <StatTile label="False-positive rate" value={percent(evaluation.metrics.false_positive_rate)} />
+              <StatTile label="F1" value={evaluation.metrics.f1.toFixed(3)} />
+            </div>
+            <Card className="mt-4">
+              <p className="mb-2 text-xs text-slate-300">
+                {evaluation.samples.normal} legitimate and {evaluation.samples.attack} attack samples, threshold{" "}
+                {evaluation.metrics.threshold}. Confusion: TP {evaluation.metrics.true_positives}, FP{" "}
+                {evaluation.metrics.false_positives}, TN {evaluation.metrics.true_negatives}, FN{" "}
+                {evaluation.metrics.false_negatives}.
+              </p>
+              <ResultTable rows={evaluation.by_type} normal={evaluation.normal} idle={evaluation.idle} />
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="text-slate-500">
+                  <tr>
+                    <th className="py-1 font-medium">Run</th>
+                    <th className="py-1 font-medium">Traffic</th>
+                    <th className="py-1 font-medium">Samples flagged</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evaluation.runs.map((row) => (
+                    <tr key={row.run} className="border-t border-white/5">
+                      <td className="py-1">{row.run}</td>
+                      <td className="py-1">{row.attack_type ?? row.label}</td>
+                      <td className="py-1">
+                        {row.flagged} / {row.samples}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {evaluation.excluded.length > 0 && (
+                <div className="mt-3 text-xs text-slate-300">
+                  <p className="mb-1 text-slate-500">Recordings not scored</p>
+                  <ul className="list-disc pl-5">
+                    {evaluation.excluded.map((row) => (
+                      <li key={row.run}>
+                        {row.run} ({row.events} events): {row.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <p className="mt-2 text-[11px] text-slate-500">
+                Evaluated {new Date(evaluation.generated_at).toLocaleString()}. Model trained on:{" "}
+                {evaluation.trained_on.join(", ") || "unknown"}; none of those runs are scored. Sample unit:{" "}
+                {evaluation.sample_unit}.
+              </p>
+            </Card>
+          </>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-1 text-sm font-semibold text-slate-100">
+          <Badge tone="neutral">NOTE</Badge> End-to-end mitigation results
+        </h2>
+        <p className="text-[11px] text-slate-500">
+          End-to-end mitigation results (rate limit reached, requests blocked, legitimate traffic blocked during an
+          attack) are shown only in the LAB RUNS comparison below, which includes the final default (candidate model,
+          guarded policy, headroom 6, fair limiter). The offline report served here was generated before that
+          configuration was final, so its older &quot;live&quot; and &quot;collateral&quot; figures are deliberately not displayed.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="mb-1 text-sm font-semibold text-slate-100">
+          <Badge tone="warn">LAB RUNS</Badge> Rate-limit policy comparison
+        </h2>
+        <p className="mb-3 text-[11px] text-slate-500">
+          The same controlled scenarios replayed against each limiter and mitigation-policy configuration with the same
+          model: legitimate traffic alone, single-source and six-source floods, and legitimate traffic running at the
+          same time. All figures are measured from the recordings and the engine&apos;s own log.
+        </p>
+        {!mitigation || !mitigation.available ? (
+          <EmptyState
+            title={mitigationLoading ? "Loading..." : "No mitigation comparison yet"}
+            hint="Run the m_<config>_<scenario> lab scenarios and classifier/mitigation_report.py --output (see README)."
+          />
+        ) : (
+          <Card>
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead className="text-slate-500">
+                <tr>
+                  <th className="py-1 font-medium">Scenario</th>
+                  <th className="py-1 font-medium">Configuration</th>
+                  <th className="py-1 font-medium">Attack blocked</th>
+                  <th className="py-1 font-medium">Attack req/s (offered → admitted, steady)</th>
+                  <th className="py-1 font-medium">Legitimate blocked</th>
+                  <th className="py-1 font-medium">Cap (min / typical; below ½ baseline after)</th>
+                  <th className="py-1 font-medium">Flagged polls</th>
+                  <th className="py-1 font-medium">Recovery</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mitigation.rows.map((row) => (
+                  <tr key={`${row.scenario}-${row.config}`} className="border-t border-white/5">
+                    <td className="py-1">
+                      {SCENARIO_LABEL[row.scenario]}
+                      {row.attack_sources > 1 && ` (${row.attack_sources} sources)`}
+                      {row.start?.clean === false && (
+                        <span className="ml-2 text-amber-400">unclean start (cap {row.start.cap_rps?.toFixed(0)})</span>
+                      )}
+                    </td>
+                    <td className="py-1">{mitigation.configs[row.config]?.label ?? row.config}</td>
+                    <td className="py-1">
+                      {!row.attack
+                        ? "--"
+                        : row.attack.http && row.attack.blocked_fraction !== undefined
+                          ? `${percent(row.attack.blocked_fraction)} (${row.attack.blocked}/${row.attack.requests})`
+                          : "not HTTP: detected only, not blocked"}
+                    </td>
+                    <td className="py-1">
+                      {!row.attack
+                        ? "--"
+                        : row.attack.http
+                          ? `${row.attack.offered_rps.toFixed(0)} → ${row.attack.admitted_rps?.toFixed(0)}, ${row.attack.steady_admitted_rps?.toFixed(0)}`
+                          : `${row.attack.offered_rps.toFixed(0)} events/s`}
+                    </td>
+                    <td className="py-1">
+                      {row.legit ? `${percent(row.legit.blocked_fraction)} (${row.legit.blocked}/${row.legit.requests})` : "--"}
+                    </td>
+                    <td className="py-1">
+                      {row.limit.min_rps == null
+                        ? "--"
+                        : `${row.limit.min_rps.toFixed(0)} / ${row.limit.typical_rps?.toFixed(0)}${row.limit.below_half_baseline_s == null ? "" : `; ${row.limit.below_half_baseline_s}s`}`}
+                    </td>
+                    <td className="py-1">
+                      {row.flagged_polls} / {row.polls}
+                    </td>
+                    <td className="py-1">
+                      {row.recovery
+                        ? row.recovery.recovered
+                          ? `${row.recovery.seconds}s`
+                          : `not within ${row.recovery.observed_seconds}s`
+                        : "--"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-2 text-[11px] text-slate-500">
+              Generated {new Date(mitigation.generated_at).toLocaleString()}. Baseline cap {mitigation.baseline_limit_rps}{" "}
+              req/s. &quot;Flagged polls&quot; are engine polls with confidence of at least 0.5; for the legitimate-only
+              scenario they are false positives. Recovery is the time after an attack stopped until the cap was back
+              above 90% of the baseline.
+            </p>
+            {mitigation.excluded_runs && mitigation.excluded_runs.length > 0 && (
+              <div className="mt-2 text-[11px] text-slate-500">
+                <p>Recordings kept on disk but not counted:</p>
+                <ul className="list-disc pl-5">
+                  {mitigation.excluded_runs.map((row) => (
+                    <li key={row.run}>
+                      {row.run}: {row.reason}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Card>
         )}
       </section>
 
@@ -149,8 +431,8 @@ export function Analytics() {
       </section>
 
       <p className="text-[11px] text-slate-500">
-        Precision, recall, and false-positive-rate are not shown -- neither backend computes them (no ground-truth
-        attack/legitimate labels are tracked at runtime), so they are omitted rather than estimated.
+        Detection metrics come only from labeled test runs: OFFLINE results score held-out runs with mitigation
+        inert; LAB RUNS are measured from recordings of the final configuration. Nothing is estimated.
       </p>
     </div>
   );

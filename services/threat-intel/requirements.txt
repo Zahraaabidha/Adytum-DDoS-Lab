@@ -9,3 +9,4 @@ redis==5.0.8
 apscheduler==3.10.4
 python-dateutil==2.9.0
 geoip2==4.8.0
+alembic==1.13.3

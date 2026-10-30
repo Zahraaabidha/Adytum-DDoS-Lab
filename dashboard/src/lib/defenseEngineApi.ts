@@ -1,5 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import type { DefenseThreshold, MitigationAction } from "../types/threat";
+import type {
+  DefenseHealth,
+  DefenseThreshold,
+  DetectionEvaluation,
+  IncidentsResponse,
+  MitigationAction,
+  MitigationReport,
+  SuricataAlert,
+  SuricataSummary,
+} from "../types/threat";
 
 /**
  * `defense-engine` (Sandbox Lab, port 9300) is reached same-origin via the
@@ -47,7 +56,79 @@ export function useDefenseEngineHealth() {
     queryFn: async () => {
       const response = await fetch("/api/defense/health");
       if (!response.ok) throw new Error(`defense-engine /health returned ${response.status}`);
-      return (await response.json()) as Record<string, unknown>;
+      return (await response.json()) as DefenseHealth;
+    },
+  });
+}
+
+/** Offline evaluation of the classifier on labeled recordings (`defense-engine` `/evaluation`). */
+export function useDetectionEvaluation() {
+  return useQuery({
+    queryKey: ["defense-evaluation"],
+    staleTime: 60_000,
+    retry: 0,
+    queryFn: async () => {
+      const response = await fetch("/api/defense/evaluation");
+      if (!response.ok) throw new Error(`defense-engine /evaluation returned ${response.status}`);
+      return (await response.json()) as DetectionEvaluation;
+    },
+  });
+}
+
+/** Measured limiter/policy comparison from the controlled lab scenarios (`defense-engine` `/mitigation-report`). */
+export function useMitigationReport() {
+  return useQuery({
+    queryKey: ["defense-mitigation-report"],
+    staleTime: 60_000,
+    retry: 0,
+    queryFn: async () => {
+      const response = await fetch("/api/defense/mitigation-report");
+      if (!response.ok) throw new Error(`defense-engine /mitigation-report returned ${response.status}`);
+      return (await response.json()) as MitigationReport;
+    },
+  });
+}
+
+/** Suricata alerts (newest first), each annotated with the ML detector's view at that time (`/suricata/alerts`). */
+export function useSuricataAlerts(limit = 100) {
+  return useQuery({
+    queryKey: ["defense-suricata-alerts", limit],
+    staleTime: 5_000,
+    refetchInterval: 10_000,
+    retry: 0,
+    queryFn: async () => {
+      const response = await fetch(`/api/defense/suricata/alerts?limit=${limit}`);
+      if (!response.ok) throw new Error(`defense-engine /suricata/alerts returned ${response.status}`);
+      return ((await response.json()) as { alerts: SuricataAlert[] }).alerts ?? [];
+    },
+  });
+}
+
+export function useSuricataSummary() {
+  return useQuery({
+    queryKey: ["defense-suricata-summary"],
+    staleTime: 5_000,
+    refetchInterval: 10_000,
+    retry: 0,
+    queryFn: async () => {
+      const response = await fetch("/api/defense/suricata/summary");
+      if (!response.ok) throw new Error(`defense-engine /suricata/summary returned ${response.status}`);
+      return (await response.json()) as SuricataSummary;
+    },
+  });
+}
+
+/** Unified incidents: Suricata alerts + Isolation Forest + Prometheus evidence (`/incidents`). */
+export function useIncidents(limit = 10) {
+  return useQuery({
+    queryKey: ["defense-incidents", limit],
+    staleTime: 5_000,
+    refetchInterval: 10_000,
+    retry: 0,
+    queryFn: async () => {
+      const response = await fetch(`/api/defense/incidents?limit=${limit}`);
+      if (!response.ok) throw new Error(`defense-engine /incidents returned ${response.status}`);
+      return (await response.json()) as IncidentsResponse;
     },
   });
 }

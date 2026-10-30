@@ -7,16 +7,19 @@ rule baked into this proxy.
 """
 import asyncio
 import os
-import time
 
 import httpx
 from fastapi import FastAPI, Request
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
+from limiter import FairShareLimiter, GlobalLimiter
 from starlette.responses import Response
 
 UPSTREAM_URL = os.environ.get("UPSTREAM_URL", "http://web:8000")
 ENGINE_URL = os.environ.get("ENGINE_URL", "http://defense-engine:9300")
 REFRESH_INTERVAL = float(os.environ.get("REFRESH_INTERVAL", "3"))
+# "fair" shares the cap fairly between source addresses, "global" is plain first-come-first-served
+# (see limiter.py). Both enforce the same cap.
+LIMITER_MODE = os.environ.get("LIMITER_MODE", "fair")
 
 ALLOWED = Counter("ratelimiter_allowed_total", "Requests allowed through")
 BLOCKED = Counter("ratelimiter_blocked_total", "Requests blocked by adaptive rate limit")
@@ -24,7 +27,7 @@ CURRENT_LIMIT = Gauge("ratelimiter_current_limit_rps", "Currently enforced reque
 
 app = FastAPI(title="SENTINEL LAB adaptive rate limiter")
 
-_state = {"limit_rps": 500.0, "window_start": time.time(), "count_in_window": 0}
+limiter = FairShareLimiter(500.0) if LIMITER_MODE == "fair" else GlobalLimiter(500.0)
 
 
 async def refresh_loop():
@@ -32,8 +35,8 @@ async def refresh_loop():
         while True:
             try:
                 resp = await client.get(f"{ENGINE_URL}/threshold", timeout=3)
-                _state["limit_rps"] = resp.json()["threshold_rps"]
-                CURRENT_LIMIT.set(_state["limit_rps"])
+                limiter.set_limit(resp.json()["threshold_rps"])
+                CURRENT_LIMIT.set(limiter.limit)
             except Exception:
                 pass
             await asyncio.sleep(REFRESH_INTERVAL)
@@ -44,15 +47,6 @@ async def startup():
     asyncio.create_task(refresh_loop())
 
 
-def _allow_request() -> bool:
-    now = time.time()
-    if now - _state["window_start"] >= 1.0:
-        _state["window_start"] = now
-        _state["count_in_window"] = 0
-    _state["count_in_window"] += 1
-    return _state["count_in_window"] <= _state["limit_rps"]
-
-
 @app.get("/metrics")
 async def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
@@ -60,7 +54,8 @@ async def metrics():
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def proxy(path: str, request: Request):
-    if not _allow_request():
+    # The socket peer address, never X-Forwarded-For: a client must not be able to pick its own identity.
+    if not limiter.allow(request.client.host if request.client else "unknown"):
         BLOCKED.inc()
         return Response(content="rate limited by SENTINEL LAB adaptive mitigation", status_code=429)
 

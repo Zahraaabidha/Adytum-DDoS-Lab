@@ -12,8 +12,8 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   return (
-    <nav className="flex w-56 shrink-0 flex-col gap-1 border-r border-white/10 bg-panelmuted/40 p-4">
-      <div className="mb-4 px-2 text-sm font-semibold tracking-wide text-slate-200">
+    <nav className="flex shrink-0 flex-row flex-wrap items-center gap-1 border-b border-white/10 bg-panelmuted/40 p-3 md:w-56 md:flex-col md:items-stretch md:border-b-0 md:border-r md:p-4">
+      <div className="w-full px-2 text-sm font-semibold tracking-wide text-slate-200 md:mb-4 md:w-auto">
         SENTINEL LAB
       </div>
       {NAV_ITEMS.map((item) => (

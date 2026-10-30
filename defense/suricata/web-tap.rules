@@ -1,0 +1,12 @@
+# SENTINEL LAB rules for the web tap (`suricata-web`), which shares the network namespace of ONE web replica (of three).
+# Slowloris connects straight to web:8000 and trickles tiny header lines; the rate-limiter and load balancer are not
+# involved. Counting SYNs does not work: legitimate traffic arrives from the load balancer as one source, and busy
+# legitimate load produced 253-302 SYNs per 10 s against 29-37 for Slowloris (defense/suricata/calibrate.py).
+# The tiny established-connection payloads (1-60 bytes) do separate them, measured per source in a 10 s window:
+#
+#   legitimate (10 and 45 users), HTTP flood arriving via the load balancer   0 (every run)
+#   Slowloris, 100 connections (this tap sees about a third)                  102, 114
+#
+# 25 is a quarter of the weakest observed Slowloris and far above zero. Only two Slowloris runs were measured.
+
+alert tcp any any -> any 8000 (msg:"SENTINEL LAB: possible Slowloris (trickled request headers)"; flow:established,to_server; dsize:1<>61; threshold:type both, track by_src, count 25, seconds 10; classtype:attempted-dos; sid:1000002; rev:4;)

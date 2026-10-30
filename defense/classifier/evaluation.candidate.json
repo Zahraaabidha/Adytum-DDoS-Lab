@@ -1,0 +1,756 @@
+{
+  "generated_at": "2026-10-29T19:11:42.382395+00:00",
+  "trained_on": [
+    "v3_train_low",
+    "v3_train_mixed",
+    "v3_train_busy",
+    "v3_train_flash",
+    "v3_train_newconn",
+    "v3_train_slowmix"
+  ],
+  "feature_names": [
+    "request_rate",
+    "avg_connection_duration",
+    "inter_arrival_std",
+    "error_rate",
+    "active_connections",
+    "established_connections"
+  ],
+  "sample_unit": "engine feature samples (one per 5s poll; the 15s rate windows overlap, so neighbours are correlated)",
+  "samples": {
+    "normal": 63,
+    "attack": 62
+  },
+  "metrics": {
+    "true_positives": 62,
+    "false_positives": 5,
+    "true_negatives": 58,
+    "false_negatives": 0,
+    "precision": 0.9253731343283582,
+    "recall": 1.0,
+    "false_positive_rate": 0.07936507936507936,
+    "f1": 0.9612403100775194,
+    "accuracy": 0.96,
+    "threshold": 0.5
+  },
+  "normal": {
+    "samples": 63,
+    "false_positives": 5
+  },
+  "idle": {
+    "samples": 309,
+    "false_positives": 14
+  },
+  "by_type": [
+    {
+      "attack_type": "http_flood",
+      "runs": 2,
+      "samples": 22,
+      "flagged": 22,
+      "low_sample": false,
+      "metrics": {
+        "true_positives": 22,
+        "false_positives": 5,
+        "true_negatives": 58,
+        "false_negatives": 0,
+        "precision": 0.8148148148148148,
+        "recall": 1.0,
+        "false_positive_rate": 0.07936507936507936,
+        "f1": 0.8979591836734693,
+        "accuracy": 0.9411764705882353,
+        "threshold": 0.5
+      }
+    },
+    {
+      "attack_type": "slowloris",
+      "runs": 1,
+      "samples": 13,
+      "flagged": 13,
+      "low_sample": false,
+      "metrics": {
+        "true_positives": 13,
+        "false_positives": 5,
+        "true_negatives": 58,
+        "false_negatives": 0,
+        "precision": 0.7222222222222222,
+        "recall": 1.0,
+        "false_positive_rate": 0.07936507936507936,
+        "f1": 0.8387096774193548,
+        "accuracy": 0.9342105263157895,
+        "threshold": 0.5
+      }
+    },
+    {
+      "attack_type": "tcp_exhaustion",
+      "runs": 2,
+      "samples": 18,
+      "flagged": 18,
+      "low_sample": false,
+      "metrics": {
+        "true_positives": 18,
+        "false_positives": 5,
+        "true_negatives": 58,
+        "false_negatives": 0,
+        "precision": 0.782608695652174,
+        "recall": 1.0,
+        "false_positive_rate": 0.07936507936507936,
+        "f1": 0.878048780487805,
+        "accuracy": 0.9382716049382716,
+        "threshold": 0.5
+      }
+    },
+    {
+      "attack_type": "udp_flood",
+      "runs": 1,
+      "samples": 9,
+      "flagged": 9,
+      "low_sample": true,
+      "metrics": {
+        "true_positives": 9,
+        "false_positives": 5,
+        "true_negatives": 58,
+        "false_negatives": 0,
+        "precision": 0.6428571428571429,
+        "recall": 1.0,
+        "false_positive_rate": 0.07936507936507936,
+        "f1": 0.782608695652174,
+        "accuracy": 0.9305555555555556,
+        "threshold": 0.5
+      }
+    }
+  ],
+  "runs": [
+    {
+      "run": "v3f_legit_a",
+      "attack_type": "legitimate_load",
+      "label": "normal",
+      "samples": 16,
+      "flagged": 1,
+      "events": 844,
+      "warnings": []
+    },
+    {
+      "run": "v3f_legit_hi",
+      "attack_type": "legitimate_load",
+      "label": "normal",
+      "samples": 15,
+      "flagged": 2,
+      "events": 3005,
+      "warnings": []
+    },
+    {
+      "run": "v3f_legit_nc",
+      "attack_type": "legitimate_load",
+      "label": "normal",
+      "samples": 16,
+      "flagged": 2,
+      "events": 330,
+      "warnings": []
+    },
+    {
+      "run": "v3f_legit_flash",
+      "attack_type": "legitimate_load",
+      "label": "normal",
+      "samples": 16,
+      "flagged": 0,
+      "events": 445,
+      "warnings": []
+    },
+    {
+      "run": "v3f_http_flood",
+      "attack_type": "http_flood",
+      "label": "attack",
+      "samples": 11,
+      "flagged": 11,
+      "events": 8172,
+      "warnings": []
+    },
+    {
+      "run": "v3f_http_dist_6",
+      "attack_type": "http_flood",
+      "label": "attack",
+      "samples": 11,
+      "flagged": 11,
+      "events": 1248,
+      "warnings": []
+    },
+    {
+      "run": "v3f_slowloris",
+      "attack_type": "slowloris",
+      "label": "attack",
+      "samples": 13,
+      "flagged": 13,
+      "events": 745,
+      "warnings": []
+    },
+    {
+      "run": "v3f_udp_flood",
+      "attack_type": "udp_flood",
+      "label": "attack",
+      "samples": 9,
+      "flagged": 9,
+      "events": 55120,
+      "warnings": []
+    },
+    {
+      "run": "v3f_tcp_a",
+      "attack_type": "tcp_exhaustion",
+      "label": "attack",
+      "samples": 9,
+      "flagged": 9,
+      "events": 200,
+      "warnings": []
+    },
+    {
+      "run": "v3f_tcp_b",
+      "attack_type": "tcp_exhaustion",
+      "label": "attack",
+      "samples": 9,
+      "flagged": 9,
+      "events": 200,
+      "warnings": []
+    }
+  ],
+  "excluded": [
+    {
+      "run": "http_flood_run",
+      "events": 189935,
+      "reason": "target never responded: 100% of 189935 http_flood events have no HTTP status (attacker-side connection failures, not traffic the target handled)"
+    },
+    {
+      "run": "v3_train_low",
+      "events": 68,
+      "reason": "used for training"
+    },
+    {
+      "run": "v3_train_mixed",
+      "events": 372,
+      "reason": "used for training"
+    },
+    {
+      "run": "v3_train_busy",
+      "events": 2914,
+      "reason": "used for training"
+    },
+    {
+      "run": "v3_train_flash",
+      "events": 864,
+      "reason": "used for training"
+    },
+    {
+      "run": "v3_train_newconn",
+      "events": 571,
+      "reason": "used for training"
+    },
+    {
+      "run": "v3_train_slowmix",
+      "events": 636,
+      "reason": "used for training"
+    },
+    {
+      "run": "v3f_http_dist_3",
+      "events": 1253,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "v3f_http_dist_1",
+      "events": 1247,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "v3f_http_dist_2",
+      "events": 1246,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "v3f_http_dist_5",
+      "events": 1244,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "v3f_http_dist_4",
+      "events": 1240,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "e2e_fair_flood_legit",
+      "events": 504,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "e2e_fair_dist_2",
+      "events": 1409,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "e2e_fair_dist_4",
+      "events": 1406,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "e2e_fair_dist_1",
+      "events": 1408,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "e2e_fair_dist_5",
+      "events": 1406,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "e2e_fair_dist_6",
+      "events": 1408,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "e2e_fair_dist_legit",
+      "events": 512,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "e2e_fair_slow_legit",
+      "events": 613,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_flood_light_legit",
+      "events": 204,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_flood_mod_legit",
+      "events": 608,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_light_2",
+      "events": 22891,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_light_5",
+      "events": 22571,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_light_1",
+      "events": 22817,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_light_6",
+      "events": 22641,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_light_3",
+      "events": 22706,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_light_legit",
+      "events": 190,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_mod_1",
+      "events": 23137,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_mod_2",
+      "events": 22846,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_mod_6",
+      "events": 23109,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_mod_5",
+      "events": 22930,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_global_dist_mod_legit",
+      "events": 595,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_flood_light_legit",
+      "events": 188,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_flood_mod_legit",
+      "events": 567,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_light_2",
+      "events": 22706,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_light_6",
+      "events": 22768,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_light_1",
+      "events": 22616,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_light_4",
+      "events": 22829,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_light_5",
+      "events": 22498,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_light_legit",
+      "events": 178,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_mod_6",
+      "events": 21944,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_mod_5",
+      "events": 21965,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_mod_4",
+      "events": 21775,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_mod_3",
+      "events": 21822,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_mod_2",
+      "events": 22067,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    },
+    {
+      "run": "lim_fair_dist_mod_legit",
+      "events": 595,
+      "reason": "no usable feature-log samples during this run (recorded before the engine's feature log, or the engine was not running)"
+    }
+  ],
+  "collateral": [
+    {
+      "legit_run": "e2e_fair_flood_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 1,
+      "overlap_seconds": 68.8,
+      "requests": 504,
+      "blocked": 0,
+      "blocked_fraction": 0.0
+    },
+    {
+      "legit_run": "e2e_fair_dist_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 6,
+      "overlap_seconds": 69.2,
+      "requests": 512,
+      "blocked": 0,
+      "blocked_fraction": 0.0
+    },
+    {
+      "legit_run": "e2e_fair_slow_legit",
+      "attack_type": "slowloris",
+      "attack_runs": 1,
+      "overlap_seconds": 69.3,
+      "requests": 613,
+      "blocked": 8,
+      "blocked_fraction": 0.013050570962479609
+    },
+    {
+      "legit_run": "lim_global_flood_light_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 1,
+      "overlap_seconds": 70.0,
+      "requests": 204,
+      "blocked": 204,
+      "blocked_fraction": 1.0
+    },
+    {
+      "legit_run": "lim_global_flood_mod_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 1,
+      "overlap_seconds": 69.1,
+      "requests": 608,
+      "blocked": 597,
+      "blocked_fraction": 0.9819078947368421
+    },
+    {
+      "legit_run": "lim_global_dist_light_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 6,
+      "overlap_seconds": 70.1,
+      "requests": 190,
+      "blocked": 185,
+      "blocked_fraction": 0.9736842105263158
+    },
+    {
+      "legit_run": "lim_global_dist_mod_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 6,
+      "overlap_seconds": 68.4,
+      "requests": 595,
+      "blocked": 588,
+      "blocked_fraction": 0.9882352941176471
+    },
+    {
+      "legit_run": "lim_fair_flood_light_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 1,
+      "overlap_seconds": 67.3,
+      "requests": 188,
+      "blocked": 29,
+      "blocked_fraction": 0.15425531914893617
+    },
+    {
+      "legit_run": "lim_fair_flood_mod_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 1,
+      "overlap_seconds": 68.8,
+      "requests": 567,
+      "blocked": 47,
+      "blocked_fraction": 0.08289241622574955
+    },
+    {
+      "legit_run": "lim_fair_dist_light_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 6,
+      "overlap_seconds": 70.9,
+      "requests": 178,
+      "blocked": 17,
+      "blocked_fraction": 0.09550561797752809
+    },
+    {
+      "legit_run": "lim_fair_dist_mod_legit",
+      "attack_type": "http_flood",
+      "attack_runs": 6,
+      "overlap_seconds": 69.3,
+      "requests": 595,
+      "blocked": 272,
+      "blocked_fraction": 0.45714285714285713
+    }
+  ],
+  "unlabeled_samples": {
+    "warm-up/cool-down margin": 531,
+    "overlapping runs": 174
+  },
+  "unparseable_feature_log_lines": 0,
+  "live": {
+    "samples": {
+      "normal": 16,
+      "attack": 50
+    },
+    "metrics": {
+      "true_positives": 50,
+      "false_positives": 2,
+      "true_negatives": 14,
+      "false_negatives": 0,
+      "precision": 0.9615384615384616,
+      "recall": 1.0,
+      "false_positive_rate": 0.125,
+      "f1": 0.9803921568627451,
+      "accuracy": 0.9696969696969697,
+      "threshold": 0.5
+    },
+    "normal": {
+      "samples": 16,
+      "false_positives": 2,
+      "mitigation": {
+        "min_threshold_rps": 278.9617750582697,
+        "requests": 858,
+        "blocked": 0,
+        "blocked_fraction": 0.0
+      }
+    },
+    "idle": {
+      "samples": 132,
+      "false_positives": 0
+    },
+    "by_type": [
+      {
+        "attack_type": "http_flood",
+        "runs": 3,
+        "samples": 16,
+        "flagged": 16,
+        "low_sample": false,
+        "metrics": {
+          "true_positives": 16,
+          "false_positives": 2,
+          "true_negatives": 14,
+          "false_negatives": 0,
+          "precision": 0.8888888888888888,
+          "recall": 1.0,
+          "false_positive_rate": 0.125,
+          "f1": 0.9411764705882353,
+          "accuracy": 0.9375,
+          "threshold": 0.5
+        },
+        "mitigation": {
+          "min_threshold_rps": 134.39901365051097,
+          "requests": 17504,
+          "blocked": 61,
+          "blocked_fraction": 0.0034849177330895796
+        }
+      },
+      {
+        "attack_type": "slowloris",
+        "runs": 2,
+        "samples": 16,
+        "flagged": 16,
+        "low_sample": false,
+        "metrics": {
+          "true_positives": 16,
+          "false_positives": 2,
+          "true_negatives": 14,
+          "false_negatives": 0,
+          "precision": 0.8888888888888888,
+          "recall": 1.0,
+          "false_positive_rate": 0.125,
+          "f1": 0.9411764705882353,
+          "accuracy": 0.9375,
+          "threshold": 0.5
+        },
+        "mitigation": {
+          "min_threshold_rps": 9.992680263908863
+        }
+      },
+      {
+        "attack_type": "tcp_exhaustion",
+        "runs": 1,
+        "samples": 9,
+        "flagged": 9,
+        "low_sample": true,
+        "metrics": {
+          "true_positives": 9,
+          "false_positives": 2,
+          "true_negatives": 14,
+          "false_negatives": 0,
+          "precision": 0.8181818181818182,
+          "recall": 1.0,
+          "false_positive_rate": 0.125,
+          "f1": 0.9,
+          "accuracy": 0.92,
+          "threshold": 0.5
+        },
+        "mitigation": {
+          "min_threshold_rps": 7.9941838996363686
+        }
+      },
+      {
+        "attack_type": "udp_flood",
+        "runs": 1,
+        "samples": 9,
+        "flagged": 9,
+        "low_sample": true,
+        "metrics": {
+          "true_positives": 9,
+          "false_positives": 2,
+          "true_negatives": 14,
+          "false_negatives": 0,
+          "precision": 0.8181818181818182,
+          "recall": 1.0,
+          "false_positive_rate": 0.125,
+          "f1": 0.9,
+          "accuracy": 0.92,
+          "threshold": 0.5
+        },
+        "mitigation": {
+          "min_threshold_rps": 22.586652046563533
+        }
+      }
+    ],
+    "runs": [
+      {
+        "run": "e2e_fair_legit",
+        "attack_type": "legitimate_load",
+        "label": "normal",
+        "samples": 16,
+        "flagged": 2,
+        "events": 858,
+        "warnings": []
+      },
+      {
+        "run": "e2e_fair_flood",
+        "attack_type": "http_flood",
+        "label": "attack",
+        "samples": 2,
+        "flagged": 2,
+        "events": 7741,
+        "warnings": []
+      },
+      {
+        "run": "e2e_fair_dist_3",
+        "attack_type": "http_flood",
+        "label": "attack",
+        "samples": 3,
+        "flagged": 3,
+        "events": 1408,
+        "warnings": []
+      },
+      {
+        "run": "e2e_fair_slow",
+        "attack_type": "slowloris",
+        "label": "attack",
+        "samples": 5,
+        "flagged": 5,
+        "events": 849,
+        "warnings": []
+      },
+      {
+        "run": "e2e_fair_flood_alone",
+        "attack_type": "http_flood",
+        "label": "attack",
+        "samples": 11,
+        "flagged": 11,
+        "events": 8355,
+        "warnings": []
+      },
+      {
+        "run": "e2e_fair_slow_alone",
+        "attack_type": "slowloris",
+        "label": "attack",
+        "samples": 11,
+        "flagged": 11,
+        "events": 644,
+        "warnings": []
+      },
+      {
+        "run": "e2e_fair_udp",
+        "attack_type": "udp_flood",
+        "label": "attack",
+        "samples": 9,
+        "flagged": 9,
+        "events": 55177,
+        "warnings": []
+      },
+      {
+        "run": "e2e_fair_tcp",
+        "attack_type": "tcp_exhaustion",
+        "label": "attack",
+        "samples": 9,
+        "flagged": 9,
+        "events": 200,
+        "warnings": []
+      }
+    ]
+  }
+}

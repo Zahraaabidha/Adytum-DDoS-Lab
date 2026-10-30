@@ -3,6 +3,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ app/
+COPY alembic.ini .
+COPY migrations/ migrations/
 EXPOSE 9400
 
 # python:3.12-slim has no curl; use the stdlib to hit /health so we don't

@@ -8,8 +8,17 @@ vars:
     HOME_NET: "[172.16.0.0/12,10.0.0.0/8,192.168.0.0/16]"
     EXTERNAL_NET: "any"
 
+# Suricata shares the rate-limiter's network namespace (docker-compose.yml), which has one interface on
+# target_net and one on attacker_net; Docker does not guarantee which of eth0/eth1 is which, so both are
+# watched. The attacker_net leg shows the real client addresses; the target_net leg shows the rate-limiter
+# forwarding to the load balancer (source = the rate-limiter). Every alert records its `in_iface`.
 af-packet:
   - interface: eth0
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+  - interface: eth1
+    cluster-id: 98
     cluster-type: cluster_flow
     defrag: yes
 
@@ -23,7 +32,6 @@ outputs:
         - flow
         - stats
         - dns
-        - tcp
 
 default-rule-path: /etc/suricata/rules
 rule-files:

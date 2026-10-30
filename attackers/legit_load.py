@@ -15,19 +15,21 @@ import time
 import aiohttp
 
 from common.identity import random_fake_identity
+from common.paths import parse_paths, pick_url
 from common.metrics import ACTIVE_WORKERS, ERRORS, REQUESTS_SENT, serve_metrics
 from common.recorder import Recorder, SimEvent
 
 ATTACK_TYPE = "legitimate_load"
 
 
-async def user_session(session: aiohttp.ClientSession, target_url: str, recorder: Recorder, stop_at: float):
+async def user_session(session: aiohttp.ClientSession, target_url: str, recorder: Recorder, stop_at: float,
+                       paths: list[str], weights: list[float], think_scale: float):
     identity = random_fake_identity()
     while time.time() < stop_at:
         start = time.perf_counter()
         status = None
         try:
-            async with session.get(target_url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+            async with session.get(pick_url(target_url, paths, weights), timeout=aiohttp.ClientTimeout(total=5)) as resp:
                 status = resp.status
                 await resp.read()
         except Exception:
@@ -48,15 +50,19 @@ async def user_session(session: aiohttp.ClientSession, target_url: str, recorder
             )
         )
         # Human-like think time between page views, occasionally longer.
-        await asyncio.sleep(random.choice([random.uniform(0.5, 2.0), random.uniform(2.0, 6.0)]))
+        await asyncio.sleep(think_scale * random.choice([random.uniform(0.5, 2.0), random.uniform(2.0, 6.0)]))
 
 
-async def run(target_url: str, concurrency: int, duration: int, run_name: str, burst: bool):
+async def run(target_url: str, concurrency: int, duration: int, run_name: str, burst: bool,
+              paths: list[str], weights: list[float], think_scale: float, keepalive: bool):
     recorder = Recorder(run_name)
     stop_at = time.time() + duration
     ACTIVE_WORKERS.labels(attack_type=ATTACK_TYPE).set(concurrency)
-    async with aiohttp.ClientSession() as session:
-        tasks = [user_session(session, target_url, recorder, stop_at) for _ in range(concurrency)]
+    # keepalive=False opens a new TCP connection per request, like clients that don't reuse connections.
+    connector = aiohttp.TCPConnector(force_close=not keepalive)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        tasks = [user_session(session, target_url, recorder, stop_at, paths, weights, think_scale)
+                 for _ in range(concurrency)]
         if burst:
             # Simulate a legitimate traffic spike partway through (e.g. a flash sale),
             # which the classifier must learn NOT to flag as an attack.
@@ -64,7 +70,8 @@ async def run(target_url: str, concurrency: int, duration: int, run_name: str, b
                 await asyncio.sleep(duration / 3)
                 burst_stop = min(stop_at, time.time() + duration / 6)
                 await asyncio.gather(
-                    *[user_session(session, target_url, recorder, burst_stop) for _ in range(concurrency * 3)]
+                    *[user_session(session, target_url, recorder, burst_stop, paths, weights, think_scale)
+                      for _ in range(concurrency * 3)]
                 )
 
             tasks.append(burst_task())
@@ -79,9 +86,15 @@ if __name__ == "__main__":
     parser.add_argument("--concurrency", type=int, default=int(os.environ.get("CONCURRENCY", "10")))
     parser.add_argument("--duration", type=int, default=int(os.environ.get("DURATION", "120")))
     parser.add_argument("--burst", action="store_true", default=os.environ.get("BURST", "false").lower() == "true")
+    parser.add_argument("--paths", default=os.environ.get("PATHS", "/"), help='weighted paths, e.g. "/:6,/work:3,/health:1"')
+    parser.add_argument("--think-scale", type=float, default=float(os.environ.get("THINK_SCALE", "1")),
+                        help="multiplies think time: <1 means busier users")
+    parser.add_argument("--no-keepalive", action="store_true", default=os.environ.get("KEEPALIVE", "true").lower() == "false")
     parser.add_argument("--run-name", default=os.environ.get("RUN_NAME", f"legit_load_{int(time.time())}"))
     parser.add_argument("--metrics-port", type=int, default=int(os.environ.get("METRICS_PORT", "9404")))
     args = parser.parse_args()
 
     serve_metrics(args.metrics_port)
-    asyncio.run(run(args.target, args.concurrency, args.duration, args.run_name, args.burst))
+    paths, weights = parse_paths(args.paths)
+    asyncio.run(run(args.target, args.concurrency, args.duration, args.run_name, args.burst,
+                    paths, weights, args.think_scale, not args.no_keepalive))

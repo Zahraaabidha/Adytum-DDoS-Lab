@@ -1,15 +1,15 @@
-# SENTINEL LAB custom Suricata rules: flag flood-style patterns for the
-# lab's internal traffic. Thresholds are tuned for the small demo traffic
-# volumes used in this lab, not production traffic.
+# SENTINEL LAB ingress sensor (`suricata`): HTTP flood at the rate-limiter's client-facing port 8080. Slowloris, UDP
+# flood and TCP exhaustion never pass the rate-limiter and are handled by the target taps (web-tap.rules,
+# target-tap.rules). Thresholds come from defense/suricata/calibrate.py runs, not estimates:
+#
+#   GET requests from one source per 10 s (maximum over the busiest window, two runs each)
+#     legitimate, default legit-load (10 users)  132-146
+#     legitimate, busy (45 users, half the think time) 785-877
+#     HTTP flood (attacker-http-flood)           1089-1159
+#
+# 400 is the geometric mean of the default legitimate load and the flood (2.7x either way). Legitimate load from ONE
+# source above about 40 req/s cannot be told from the flood by rate, so it alerts (the busy profile does); that is the
+# same limit the ML detector has. Counting requests, not packets: the previous packet-count rule (200 per 10 s) alerted
+# on ordinary legitimate load.
 
-# Port 8080 is the rate-limiter's ingress port -- the actual chokepoint
-# attacker traffic hits (Suricata shares the rate-limiter container's
-# network namespace, see docker-compose.yml). Port 8000 (the web/lb port)
-# is kept too in case Suricata is ever re-pointed at the lb's netns instead.
-alert tcp any any -> any [8000,8080] (msg:"SENTINEL LAB: possible HTTP flood"; flow:to_server; threshold:type both, track by_src, count 200, seconds 10; classtype:attempted-dos; sid:1000001; rev:1;)
-
-alert tcp any any -> any [8000,8080] (msg:"SENTINEL LAB: possible Slowloris (many half-open connections)"; flow:to_server,no_frag; flags:S; threshold:type both, track by_src, count 50, seconds 10; classtype:attempted-dos; sid:1000002; rev:1;)
-
-alert udp any any -> any 5300 (msg:"SENTINEL LAB: possible UDP flood"; threshold:type both, track by_src, count 500, seconds 10; classtype:attempted-dos; sid:1000003; rev:1;)
-
-alert tcp any any -> any 9000 (msg:"SENTINEL LAB: possible TCP connection exhaustion"; flags:S; threshold:type both, track by_src, count 200, seconds 10; classtype:attempted-dos; sid:1000004; rev:1;)
+alert http any any -> any 8080 (msg:"SENTINEL LAB: possible HTTP flood"; flow:established,to_server; http.method; content:"GET"; threshold:type both, track by_src, count 400, seconds 10; classtype:attempted-dos; sid:1000001; rev:3;)

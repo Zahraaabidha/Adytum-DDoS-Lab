@@ -1,0 +1,1714 @@
+{
+  "generated_at": "2026-10-30T08:09:54.585421+00:00",
+  "baseline_limit_rps": 500.0,
+  "configs": {
+    "fgb": {
+      "limiter": "fair",
+      "policy": "guarded",
+      "label": "guarded policy (estimator v2), original model.joblib"
+    },
+    "fgc": {
+      "limiter": "fair",
+      "policy": "guarded",
+      "label": "guarded policy (estimator v2), candidate model, with override"
+    },
+    "fgd": {
+      "limiter": "fair",
+      "policy": "guarded",
+      "label": "promoted default, plain docker compose (estimator v2: FAILED acceptance, see README)"
+    },
+    "fge": {
+      "limiter": "fair",
+      "policy": "guarded",
+      "label": "promoted default, plain docker compose, estimator v3 (ramp polls not learned as normal)"
+    },
+    "fgf": {
+      "limiter": "fair",
+      "policy": "guarded",
+      "label": "FINAL default: candidate model, guarded policy (estimator v3, headroom 6), fair limiter, plain docker compose"
+    },
+    "fh4": {
+      "limiter": "fair",
+      "policy": "guarded",
+      "label": "estimator v3, MITIGATION_HEADROOM=4 (sweep)"
+    },
+    "fh6": {
+      "limiter": "fair",
+      "policy": "guarded",
+      "label": "estimator v3, MITIGATION_HEADROOM=6 (sweep)"
+    },
+    "fl": {
+      "limiter": "fair",
+      "policy": "linear",
+      "label": "fair limiter + original linear policy"
+    },
+    "gl": {
+      "limiter": "global",
+      "policy": "linear",
+      "label": "global limiter + original linear policy"
+    }
+  },
+  "rows": [
+    {
+      "config": "fgb",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 93.4,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "legit": {
+        "requests": 873,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 9.343428546222004,
+        "steady_admitted_rps": 8.519323164711015
+      },
+      "limit": {
+        "min_rps": 500.0,
+        "typical_rps": 500.0,
+        "below_half_baseline_s": null
+      },
+      "polls": 15,
+      "flagged_polls": 1,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "fgc",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 94.1,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "legit": {
+        "requests": 830,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 8.816381150283886,
+        "steady_admitted_rps": 8.221540976288829
+      },
+      "limit": {
+        "min_rps": 500.0,
+        "typical_rps": 500.0,
+        "below_half_baseline_s": null
+      },
+      "polls": 16,
+      "flagged_polls": 0,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "fgd",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 94.5,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "legit": {
+        "requests": 871,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 9.221521204679552,
+        "steady_admitted_rps": 8.702744466413996
+      },
+      "limit": {
+        "min_rps": 500.0,
+        "typical_rps": 500.0,
+        "below_half_baseline_s": null
+      },
+      "polls": 16,
+      "flagged_polls": 1,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "fge",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 92.8,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "legit": {
+        "requests": 871,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 9.382769452648759,
+        "steady_admitted_rps": 8.682562777077957
+      },
+      "limit": {
+        "min_rps": 500.0,
+        "typical_rps": 500.0,
+        "below_half_baseline_s": null
+      },
+      "polls": 16,
+      "flagged_polls": 1,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "fgf",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 94.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "legit": {
+        "requests": 844,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 8.978048453036399,
+        "steady_admitted_rps": 8.254698577673278
+      },
+      "limit": {
+        "min_rps": 500.0,
+        "typical_rps": 500.0,
+        "below_half_baseline_s": null
+      },
+      "polls": 16,
+      "flagged_polls": 1,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "fh4",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 94.2,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "legit": {
+        "requests": 857,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 9.10058441679606,
+        "steady_admitted_rps": 8.962535878384918
+      },
+      "limit": {
+        "min_rps": 500.0,
+        "typical_rps": 500.0,
+        "below_half_baseline_s": null
+      },
+      "polls": 16,
+      "flagged_polls": 1,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "fh6",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 94.3,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "legit": {
+        "requests": 881,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 9.341706849219092,
+        "steady_admitted_rps": 8.75851289154934
+      },
+      "limit": {
+        "min_rps": 500.0,
+        "typical_rps": 500.0,
+        "below_half_baseline_s": null
+      },
+      "polls": 16,
+      "flagged_polls": 0,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "fl",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 93.4,
+      "start": {
+        "cap_rps": 250.68420430969698,
+        "state": null,
+        "clean": null
+      },
+      "legit": {
+        "requests": 871,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 9.324243747018393,
+        "steady_admitted_rps": 9.14225506309266
+      },
+      "limit": {
+        "min_rps": 269.92599123320616,
+        "typical_rps": 297.54041652495147,
+        "below_half_baseline_s": null
+      },
+      "polls": 16,
+      "flagged_polls": 0,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "gl",
+      "scenario": "legit",
+      "attack_sources": 0,
+      "seconds": 93.9,
+      "start": {
+        "cap_rps": 340.0451045635598,
+        "state": null,
+        "clean": null
+      },
+      "legit": {
+        "requests": 862,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 9.184723580200728,
+        "steady_admitted_rps": 8.630656728494884
+      },
+      "limit": {
+        "min_rps": 297.95724625140485,
+        "typical_rps": 300.1575932875123,
+        "below_half_baseline_s": null
+      },
+      "polls": 16,
+      "flagged_polls": 0,
+      "mitigating_polls": 0
+    },
+    {
+      "config": "fgb",
+      "scenario": "flood",
+      "attack_sources": 1,
+      "seconds": 70.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 73842,
+        "blocked": 69711,
+        "blocked_fraction": 0.9440562281628342,
+        "offered_rps": 1054.7300955737994,
+        "admitted_rps": 59.005579816572755,
+        "steady_admitted_rps": 28.110138242317884,
+        "first_block_s": 27.4,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 27.605401076214847,
+        "typical_rps": 27.605401076214847,
+        "below_half_baseline_s": 19.5
+      },
+      "polls": 10,
+      "flagged_polls": 5,
+      "mitigating_polls": 10,
+      "recovery": {
+        "recovered": true,
+        "seconds": 141.1,
+        "observed_seconds": 143.4
+      }
+    },
+    {
+      "config": "fgc",
+      "scenario": "flood",
+      "attack_sources": 1,
+      "seconds": 70.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 102218,
+        "blocked": 96977,
+        "blocked_fraction": 0.9487272300377624,
+        "offered_rps": 1460.0574003167114,
+        "admitted_rps": 74.86118721810136,
+        "steady_admitted_rps": 38.99466535115755,
+        "first_block_s": 27.0,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 38.0007400740074,
+        "typical_rps": 38.0007400740074,
+        "below_half_baseline_s": 20.4
+      },
+      "polls": 11,
+      "flagged_polls": 6,
+      "mitigating_polls": 10,
+      "recovery": {
+        "recovered": true,
+        "seconds": 66.3,
+        "observed_seconds": 69.3
+      }
+    },
+    {
+      "config": "fgd",
+      "scenario": "flood",
+      "attack_sources": 1,
+      "seconds": 70.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 74147,
+        "blocked": 69521,
+        "blocked_fraction": 0.9376104225390104,
+        "offered_rps": 1059.1166583157453,
+        "admitted_rps": 66.07784079421471,
+        "steady_admitted_rps": 40.99511523549421,
+        "first_block_s": 29.2,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 40.42610088070456,
+        "typical_rps": 40.42610088070456,
+        "below_half_baseline_s": 20.0
+      },
+      "polls": 11,
+      "flagged_polls": 5,
+      "mitigating_polls": 10,
+      "recovery": {
+        "recovered": true,
+        "seconds": 81.1,
+        "observed_seconds": 85.2
+      }
+    },
+    {
+      "config": "fge",
+      "scenario": "flood",
+      "attack_sources": 1,
+      "seconds": 70.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 75824,
+        "blocked": 71822,
+        "blocked_fraction": 0.9472198776113104,
+        "offered_rps": 1082.981110405739,
+        "admitted_rps": 57.159875551853865,
+        "steady_admitted_rps": 24.023715811648728,
+        "first_block_s": 29.3,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 22.40696318547429,
+        "typical_rps": 22.40696318547429,
+        "below_half_baseline_s": 21.6
+      },
+      "polls": 11,
+      "flagged_polls": 5,
+      "mitigating_polls": 10,
+      "recovery": {
+        "recovered": true,
+        "seconds": 83.0,
+        "observed_seconds": 86.3
+      }
+    },
+    {
+      "config": "fgf",
+      "scenario": "flood",
+      "attack_sources": 1,
+      "seconds": 70.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 70050,
+        "blocked": 64055,
+        "blocked_fraction": 0.914418272662384,
+        "offered_rps": 1000.4833406807765,
+        "admitted_rps": 85.62309246796937,
+        "steady_admitted_rps": 64.07092457236207,
+        "first_block_s": 28.1,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 63.60000000000001,
+        "typical_rps": 63.60000000000001,
+        "below_half_baseline_s": 20.3
+      },
+      "polls": 11,
+      "flagged_polls": 11,
+      "mitigating_polls": 10,
+      "recovery": {
+        "recovered": true,
+        "seconds": 71.2,
+        "observed_seconds": 75.1
+      }
+    },
+    {
+      "config": "fl",
+      "scenario": "flood",
+      "attack_sources": 1,
+      "seconds": 70.1,
+      "start": {
+        "cap_rps": 300.72324648589876,
+        "state": null,
+        "clean": null
+      },
+      "attack": {
+        "http": true,
+        "requests": 8064,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "offered_rps": 114.96304285848754,
+        "admitted_rps": 114.96304285848754,
+        "steady_admitted_rps": 117.32959359193359,
+        "first_block_s": null,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 134.77014287031142,
+        "typical_rps": 136.04343342080733,
+        "below_half_baseline_s": 16.2
+      },
+      "polls": 11,
+      "flagged_polls": 11,
+      "mitigating_polls": 0,
+      "recovery": {
+        "recovered": false,
+        "seconds": null,
+        "observed_seconds": 97.4
+      }
+    },
+    {
+      "config": "gl",
+      "scenario": "flood",
+      "attack_sources": 1,
+      "seconds": 70.2,
+      "start": {
+        "cap_rps": 330.41148188922995,
+        "state": null,
+        "clean": null
+      },
+      "attack": {
+        "http": true,
+        "requests": 8286,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "offered_rps": 118.07443325482927,
+        "admitted_rps": 118.07443325482927,
+        "steady_admitted_rps": 120.35441265632248,
+        "first_block_s": null,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 136.68195241095393,
+        "typical_rps": 138.53482118306178,
+        "below_half_baseline_s": 16.2
+      },
+      "polls": 11,
+      "flagged_polls": 11,
+      "mitigating_polls": 0,
+      "recovery": {
+        "recovered": false,
+        "seconds": null,
+        "observed_seconds": 97.6
+      }
+    },
+    {
+      "config": "fgb",
+      "scenario": "dist",
+      "attack_sources": 6,
+      "seconds": 70.4,
+      "start": {
+        "cap_rps": 471.6641574506395,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 101609,
+        "blocked": 97074,
+        "blocked_fraction": 0.955368126839158,
+        "offered_rps": 1443.6780436746287,
+        "admitted_rps": 64.43405533037861,
+        "steady_admitted_rps": 28.530007299536994,
+        "first_block_s": 24.9,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 27.605401076214847,
+        "typical_rps": 27.605401076214847,
+        "below_half_baseline_s": 16.8
+      },
+      "polls": 11,
+      "flagged_polls": 5,
+      "mitigating_polls": 11,
+      "recovery": {
+        "recovered": true,
+        "seconds": 67.3,
+        "observed_seconds": 69.4
+      }
+    },
+    {
+      "config": "fgc",
+      "scenario": "dist",
+      "attack_sources": 6,
+      "seconds": 70.4,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 63835,
+        "blocked": 57507,
+        "blocked_fraction": 0.9008694289966319,
+        "offered_rps": 906.3666225648764,
+        "admitted_rps": 89.84864083325039,
+        "steady_admitted_rps": 69.48787108690382,
+        "first_block_s": 26.9,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 68.2,
+        "typical_rps": 68.2,
+        "below_half_baseline_s": 21.1
+      },
+      "polls": 11,
+      "flagged_polls": 11,
+      "mitigating_polls": 10,
+      "recovery": {
+        "recovered": true,
+        "seconds": 56.4,
+        "observed_seconds": 58.8
+      }
+    },
+    {
+      "config": "fgd",
+      "scenario": "dist",
+      "attack_sources": 6,
+      "seconds": 70.6,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 62337,
+        "blocked": 57654,
+        "blocked_fraction": 0.9248760768083161,
+        "offered_rps": 882.7368501789508,
+        "admitted_rps": 66.3146553313125,
+        "steady_admitted_rps": 41.46259039292824,
+        "first_block_s": 21.1,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 40.42610088070456,
+        "typical_rps": 40.42610088070456,
+        "below_half_baseline_s": 15.1
+      },
+      "polls": 12,
+      "flagged_polls": 8,
+      "mitigating_polls": 12,
+      "recovery": {
+        "recovered": true,
+        "seconds": 60.3,
+        "observed_seconds": 64.5
+      }
+    },
+    {
+      "config": "fge",
+      "scenario": "dist",
+      "attack_sources": 6,
+      "seconds": 70.4,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 83434,
+        "blocked": 79615,
+        "blocked_fraction": 0.9542272934295372,
+        "offered_rps": 1185.9249706415865,
+        "admitted_rps": 54.28299569576214,
+        "steady_admitted_rps": 23.87940109161571,
+        "first_block_s": 29.1,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 22.40696318547429,
+        "typical_rps": 22.40696318547429,
+        "below_half_baseline_s": 20.9
+      },
+      "polls": 11,
+      "flagged_polls": 5,
+      "mitigating_polls": 10,
+      "recovery": {
+        "recovered": true,
+        "seconds": 71.5,
+        "observed_seconds": 76.4
+      }
+    },
+    {
+      "config": "fgf",
+      "scenario": "dist",
+      "attack_sources": 6,
+      "seconds": 70.5,
+      "start": {
+        "cap_rps": 482.96250000000003,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 60770,
+        "blocked": 54897,
+        "blocked_fraction": 0.9033569195326642,
+        "offered_rps": 862.5244105532187,
+        "admitted_rps": 83.35701601413614,
+        "steady_admitted_rps": 64.03998914622548,
+        "first_block_s": 26.0,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 63.60000000000001,
+        "typical_rps": 63.60000000000001,
+        "below_half_baseline_s": 20.3
+      },
+      "polls": 11,
+      "flagged_polls": 11,
+      "mitigating_polls": 10,
+      "recovery": {
+        "recovered": true,
+        "seconds": 55.6,
+        "observed_seconds": 58.7
+      }
+    },
+    {
+      "config": "fl",
+      "scenario": "dist",
+      "attack_sources": 6,
+      "seconds": 70.6,
+      "start": {
+        "cap_rps": 274.75106435082455,
+        "state": null,
+        "clean": null
+      },
+      "attack": {
+        "http": true,
+        "requests": 8438,
+        "blocked": 400,
+        "blocked_fraction": 0.04740459824602986,
+        "offered_rps": 119.47759854178169,
+        "admitted_rps": 113.81381098350808,
+        "steady_admitted_rps": 118.14660846558739,
+        "first_block_s": 52.5,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 124.26294643396837,
+        "typical_rps": 132.03607883895353,
+        "below_half_baseline_s": 3.9
+      },
+      "polls": 11,
+      "flagged_polls": 11,
+      "mitigating_polls": 0,
+      "recovery": {
+        "recovered": false,
+        "seconds": null,
+        "observed_seconds": 97.4
+      }
+    },
+    {
+      "config": "gl",
+      "scenario": "dist",
+      "attack_sources": 6,
+      "seconds": 70.3,
+      "start": {
+        "cap_rps": 289.4578834168172,
+        "state": null,
+        "clean": null
+      },
+      "attack": {
+        "http": true,
+        "requests": 7862,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "offered_rps": 111.82937531742118,
+        "admitted_rps": 111.82937531742118,
+        "steady_admitted_rps": 111.089725417077,
+        "first_block_s": null,
+        "blocked_before_engagement": 0
+      },
+      "limit": {
+        "min_rps": 140.96303356645024,
+        "typical_rps": 146.02900009949482,
+        "below_half_baseline_s": 13.6
+      },
+      "polls": 11,
+      "flagged_polls": 11,
+      "mitigating_polls": 0,
+      "recovery": {
+        "recovered": false,
+        "seconds": null,
+        "observed_seconds": 97.3
+      }
+    },
+    {
+      "config": "fgb",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.0,
+      "start": {
+        "cap_rps": 471.6641574506395,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 142433,
+        "blocked": 138558,
+        "blocked_fraction": 0.9727942260571637,
+        "offered_rps": 1780.0782396265197,
+        "admitted_rps": 48.42840618784105,
+        "steady_admitted_rps": 18.471531444033307,
+        "first_block_s": 22.8,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 547,
+        "blocked": 9,
+        "blocked_fraction": 0.016453382084095063,
+        "admitted_rps": 6.723737426853802,
+        "steady_admitted_rps": 6.273821911302247
+      },
+      "limit": {
+        "min_rps": 27.605401076214847,
+        "typical_rps": 27.605401076214847,
+        "below_half_baseline_s": 17.1
+      },
+      "polls": 13,
+      "flagged_polls": 5,
+      "mitigating_polls": 13,
+      "recovery": {
+        "recovered": true,
+        "seconds": 68.1,
+        "observed_seconds": 74.7
+      }
+    },
+    {
+      "config": "fgc",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 93628,
+        "blocked": 87778,
+        "blocked_fraction": 0.9375186909898748,
+        "offered_rps": 1170.1133475002605,
+        "admitted_rps": 73.11021364203576,
+        "steady_admitted_rps": 58.66313552747279,
+        "first_block_s": 22.9,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 540,
+        "blocked": 15,
+        "blocked_fraction": 0.027777777777777776,
+        "admitted_rps": 6.561173019157055,
+        "steady_admitted_rps": 5.948796870702396
+      },
+      "limit": {
+        "min_rps": 68.2,
+        "typical_rps": 68.2,
+        "below_half_baseline_s": 16.7
+      },
+      "polls": 13,
+      "flagged_polls": 11,
+      "mitigating_polls": 13,
+      "recovery": {
+        "recovered": true,
+        "seconds": 57.5,
+        "observed_seconds": 63.0
+      }
+    },
+    {
+      "config": "fgd",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.2,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 19806,
+        "blocked": 12232,
+        "blocked_fraction": 0.6175906291022922,
+        "offered_rps": 247.0332536406577,
+        "admitted_rps": 94.46783111553779,
+        "steady_admitted_rps": 94.39299523136916,
+        "first_block_s": 34.3,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 507,
+        "blocked": 6,
+        "blocked_fraction": 0.011834319526627219,
+        "admitted_rps": 6.24879632808086,
+        "steady_admitted_rps": 5.986870733490644
+      },
+      "limit": {
+        "min_rps": 105.00000000000001,
+        "typical_rps": 105.00000000000001,
+        "below_half_baseline_s": 25.1
+      },
+      "polls": 12,
+      "flagged_polls": 12,
+      "mitigating_polls": 11,
+      "recovery": {
+        "recovered": true,
+        "seconds": 45.6,
+        "observed_seconds": 49.2
+      }
+    },
+    {
+      "config": "fge",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 103125,
+        "blocked": 99903,
+        "blocked_fraction": 0.9687563636363636,
+        "offered_rps": 1288.9116193071163,
+        "admitted_rps": 40.27028593849725,
+        "steady_admitted_rps": 14.873258928246967,
+        "first_block_s": 26.1,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 525,
+        "blocked": 25,
+        "blocked_fraction": 0.047619047619047616,
+        "admitted_rps": 6.249268457246625,
+        "steady_admitted_rps": 6.049291866614733
+      },
+      "limit": {
+        "min_rps": 22.40696318547429,
+        "typical_rps": 22.40696318547429,
+        "below_half_baseline_s": 19.3
+      },
+      "polls": 13,
+      "flagged_polls": 5,
+      "mitigating_polls": 13,
+      "recovery": {
+        "recovered": true,
+        "seconds": 70.4,
+        "observed_seconds": 74.2
+      }
+    },
+    {
+      "config": "fgf",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.0,
+      "start": {
+        "cap_rps": 482.96250000000003,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 71653,
+        "blocked": 65823,
+        "blocked_fraction": 0.9186356467977614,
+        "offered_rps": 895.4080615763212,
+        "admitted_rps": 72.85429778222758,
+        "steady_admitted_rps": 53.30985151612055,
+        "first_block_s": 28.9,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 555,
+        "blocked": 7,
+        "blocked_fraction": 0.012612612612612612,
+        "admitted_rps": 6.848054062549007,
+        "steady_admitted_rps": 6.373188999817507
+      },
+      "limit": {
+        "min_rps": 63.60000000000001,
+        "typical_rps": 63.60000000000001,
+        "below_half_baseline_s": 21.0
+      },
+      "polls": 13,
+      "flagged_polls": 7,
+      "mitigating_polls": 12,
+      "recovery": {
+        "recovered": true,
+        "seconds": 56.8,
+        "observed_seconds": 63.5
+      }
+    },
+    {
+      "config": "fh4",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.0,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 103749,
+        "blocked": 99519,
+        "blocked_fraction": 0.959228522684556,
+        "offered_rps": 1296.563514463618,
+        "admitted_rps": 52.86280991798576,
+        "steady_admitted_rps": 32.917409296447865,
+        "first_block_s": 21.2,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 548,
+        "blocked": 8,
+        "blocked_fraction": 0.014598540145985401,
+        "admitted_rps": 6.74844381931733,
+        "steady_admitted_rps": 6.673461110213805
+      },
+      "limit": {
+        "min_rps": 43.998400159984,
+        "typical_rps": 43.998400159984,
+        "below_half_baseline_s": 15.6
+      },
+      "polls": 13,
+      "flagged_polls": 4,
+      "mitigating_polls": 13,
+      "recovery": {
+        "recovered": true,
+        "seconds": 71.7,
+        "observed_seconds": 74.1
+      }
+    },
+    {
+      "config": "fh6",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.2,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 87840,
+        "blocked": 81655,
+        "blocked_fraction": 0.9295878870673953,
+        "offered_rps": 1095.8690725627364,
+        "admitted_rps": 77.16245689663621,
+        "steady_admitted_rps": 60.407536991675435,
+        "first_block_s": 27.1,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 543,
+        "blocked": 12,
+        "blocked_fraction": 0.022099447513812154,
+        "admitted_rps": 6.6246183689755584,
+        "steady_admitted_rps": 6.063210032621698
+      },
+      "limit": {
+        "min_rps": 70.20234023402341,
+        "typical_rps": 70.20234023402341,
+        "below_half_baseline_s": 19.6
+      },
+      "polls": 13,
+      "flagged_polls": 13,
+      "mitigating_polls": 13,
+      "recovery": {
+        "recovered": true,
+        "seconds": 60.3,
+        "observed_seconds": 63.0
+      }
+    },
+    {
+      "config": "fl",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.2,
+      "start": {
+        "cap_rps": 278.97359977912134,
+        "state": null,
+        "clean": null
+      },
+      "attack": {
+        "http": true,
+        "requests": 12398,
+        "blocked": 3253,
+        "blocked_fraction": 0.2623810291982578,
+        "offered_rps": 154.6828995295575,
+        "admitted_rps": 114.0970411516215,
+        "steady_admitted_rps": 115.8562191507881,
+        "first_block_s": 37.3,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 523,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 6.525177968539972,
+        "steady_admitted_rps": 6.4128900111463585
+      },
+      "limit": {
+        "min_rps": 128.66758176846307,
+        "typical_rps": 131.42559141766623,
+        "below_half_baseline_s": 11.0
+      },
+      "polls": 13,
+      "flagged_polls": 13,
+      "mitigating_polls": 0,
+      "recovery": {
+        "recovered": false,
+        "seconds": null,
+        "observed_seconds": 48.0
+      }
+    },
+    {
+      "config": "gl",
+      "scenario": "floodL",
+      "attack_sources": 1,
+      "seconds": 80.1,
+      "start": {
+        "cap_rps": 287.3134632523848,
+        "state": null,
+        "clean": null
+      },
+      "attack": {
+        "http": true,
+        "requests": 8616,
+        "blocked": 17,
+        "blocked_fraction": 0.0019730733519034353,
+        "offered_rps": 107.56492847617437,
+        "admitted_rps": 107.35269498219863,
+        "steady_admitted_rps": 115.33017749105139,
+        "first_block_s": 65.7,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 527,
+        "blocked": 1,
+        "blocked_fraction": 0.0018975332068311196,
+        "admitted_rps": 6.566753990072855,
+        "steady_admitted_rps": 6.3420361729220724
+      },
+      "limit": {
+        "min_rps": 132.03165692233793,
+        "typical_rps": 137.8968695764158,
+        "below_half_baseline_s": 16.1
+      },
+      "polls": 13,
+      "flagged_polls": 13,
+      "mitigating_polls": 0,
+      "recovery": {
+        "recovered": false,
+        "seconds": null,
+        "observed_seconds": 47.9
+      }
+    },
+    {
+      "config": "fgb",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 80.3,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 88848,
+        "blocked": 84693,
+        "blocked_fraction": 0.9532347379794706,
+        "offered_rps": 1107.046128765622,
+        "admitted_rps": 51.771302280537085,
+        "steady_admitted_rps": 25.667601130663392,
+        "first_block_s": 24.1,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 566,
+        "blocked": 241,
+        "blocked_fraction": 0.42579505300353354,
+        "admitted_rps": 4.0495001783813604,
+        "steady_admitted_rps": 2.168040095502636
+      },
+      "limit": {
+        "min_rps": 27.605401076214847,
+        "typical_rps": 27.605401076214847,
+        "below_half_baseline_s": 17.6
+      },
+      "polls": 13,
+      "flagged_polls": 8,
+      "mitigating_polls": 13,
+      "recovery": {
+        "recovered": true,
+        "seconds": 139.0,
+        "observed_seconds": 141.8
+      }
+    },
+    {
+      "config": "fgc",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 80.5,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 89661,
+        "blocked": 83671,
+        "blocked_fraction": 0.9331928040062011,
+        "offered_rps": 1113.3808277223432,
+        "admitted_rps": 74.38185117338459,
+        "steady_admitted_rps": 62.56022808205535,
+        "first_block_s": 19.8,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 552,
+        "blocked": 39,
+        "blocked_fraction": 0.07065217391304347,
+        "admitted_rps": 6.370265384298213,
+        "steady_admitted_rps": 5.488610720974289
+      },
+      "limit": {
+        "min_rps": 68.2,
+        "typical_rps": 68.2,
+        "below_half_baseline_s": 13.7
+      },
+      "polls": 13,
+      "flagged_polls": 13,
+      "mitigating_polls": 13,
+      "recovery": {
+        "recovered": true,
+        "seconds": 54.0,
+        "observed_seconds": 57.6
+      }
+    },
+    {
+      "config": "fgd",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 80.8,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 37155,
+        "blocked": 29310,
+        "blocked_fraction": 0.7888574888978603,
+        "offered_rps": 460.1223636400237,
+        "admitted_rps": 97.15139127320646,
+        "steady_admitted_rps": 96.91609791002088,
+        "first_block_s": 32.3,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 532,
+        "blocked": 7,
+        "blocked_fraction": 0.013157894736842105,
+        "admitted_rps": 6.501527140654352,
+        "steady_admitted_rps": 5.5479698266917135
+      },
+      "limit": {
+        "min_rps": 105.00000000000001,
+        "typical_rps": 105.00000000000001,
+        "below_half_baseline_s": 25.7
+      },
+      "polls": 13,
+      "flagged_polls": 13,
+      "mitigating_polls": 11,
+      "recovery": {
+        "recovered": true,
+        "seconds": 60.7,
+        "observed_seconds": 62.9
+      }
+    },
+    {
+      "config": "fge",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 80.5,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 82147,
+        "blocked": 78181,
+        "blocked_fraction": 0.9517206958257758,
+        "offered_rps": 1020.6486024779086,
+        "admitted_rps": 49.276204334027845,
+        "steady_admitted_rps": 20.823731332282065,
+        "first_block_s": 27.0,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 541,
+        "blocked": 199,
+        "blocked_fraction": 0.3678373382624769,
+        "admitted_rps": 4.249233959212689,
+        "steady_admitted_rps": 2.1618909617047013
+      },
+      "limit": {
+        "min_rps": 22.40696318547429,
+        "typical_rps": 22.40696318547429,
+        "below_half_baseline_s": 20.3
+      },
+      "polls": 13,
+      "flagged_polls": 6,
+      "mitigating_polls": 12,
+      "recovery": {
+        "recovered": true,
+        "seconds": 126.4,
+        "observed_seconds": 127.0
+      }
+    },
+    {
+      "config": "fgf",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 80.5,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 80306,
+        "blocked": 74087,
+        "blocked_fraction": 0.9225587129230692,
+        "offered_rps": 997.6514355498598,
+        "admitted_rps": 77.25941122312877,
+        "steady_admitted_rps": 57.34514266055031,
+        "first_block_s": 29.1,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 556,
+        "blocked": 37,
+        "blocked_fraction": 0.06654676258992806,
+        "admitted_rps": 6.447601611963954,
+        "steady_admitted_rps": 5.664944768893185
+      },
+      "limit": {
+        "min_rps": 63.60000000000001,
+        "typical_rps": 63.60000000000001,
+        "below_half_baseline_s": 22.4
+      },
+      "polls": 13,
+      "flagged_polls": 9,
+      "mitigating_polls": 12,
+      "recovery": {
+        "recovered": true,
+        "seconds": 62.7,
+        "observed_seconds": 67.9
+      }
+    },
+    {
+      "config": "fh4",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 80.4,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 100745,
+        "blocked": 95978,
+        "blocked_fraction": 0.9526825152613033,
+        "offered_rps": 1253.075621768358,
+        "admitted_rps": 59.29238660945717,
+        "steady_admitted_rps": 39.87652432765255,
+        "first_block_s": 23.0,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 575,
+        "blocked": 126,
+        "blocked_fraction": 0.21913043478260869,
+        "admitted_rps": 5.5847035006600105,
+        "steady_admitted_rps": 4.353332350180409
+      },
+      "limit": {
+        "min_rps": 43.998400159984,
+        "typical_rps": 43.998400159984,
+        "below_half_baseline_s": 16.8
+      },
+      "polls": 13,
+      "flagged_polls": 4,
+      "mitigating_polls": 13,
+      "recovery": {
+        "recovered": true,
+        "seconds": 57.2,
+        "observed_seconds": 106.9
+      }
+    },
+    {
+      "config": "fh6",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 80.6,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": true,
+        "requests": 72875,
+        "blocked": 66404,
+        "blocked_fraction": 0.9112041166380789,
+        "offered_rps": 904.3100791064469,
+        "admitted_rps": 80.2990123073457,
+        "steady_admitted_rps": 63.70810217677528,
+        "first_block_s": 27.9,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 549,
+        "blocked": 29,
+        "blocked_fraction": 0.052823315118397086,
+        "admitted_rps": 6.4527099984267915,
+        "steady_admitted_rps": 6.0059839216126285
+      },
+      "limit": {
+        "min_rps": 70.20234023402341,
+        "typical_rps": 70.20234023402341,
+        "below_half_baseline_s": 21.4
+      },
+      "polls": 13,
+      "flagged_polls": 13,
+      "mitigating_polls": 12,
+      "recovery": {
+        "recovered": true,
+        "seconds": 56.5,
+        "observed_seconds": 150.0
+      }
+    },
+    {
+      "config": "fl",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 81.1,
+      "start": {
+        "cap_rps": 339.00858197890904,
+        "state": null,
+        "clean": null
+      },
+      "attack": {
+        "http": true,
+        "requests": 15747,
+        "blocked": 6804,
+        "blocked_fraction": 0.4320823013907411,
+        "offered_rps": 194.23808044395082,
+        "admitted_rps": 110.31124362800864,
+        "steady_admitted_rps": 114.6408026701009,
+        "first_block_s": 43.6,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 537,
+        "blocked": 1,
+        "blocked_fraction": 0.00186219739292365,
+        "admitted_rps": 6.611520360573928,
+        "steady_admitted_rps": 5.698735833181258
+      },
+      "limit": {
+        "min_rps": 103.98261299978613,
+        "typical_rps": 134.62080660679592,
+        "below_half_baseline_s": 12.7
+      },
+      "polls": 13,
+      "flagged_polls": 13,
+      "mitigating_polls": 0,
+      "recovery": {
+        "recovered": true,
+        "seconds": 52.1,
+        "observed_seconds": 90.6
+      }
+    },
+    {
+      "config": "gl",
+      "scenario": "distL",
+      "attack_sources": 6,
+      "seconds": 80.9,
+      "start": {
+        "cap_rps": 343.04883082572263,
+        "state": null,
+        "clean": null
+      },
+      "attack": {
+        "http": true,
+        "requests": 8474,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "offered_rps": 104.74491948477423,
+        "admitted_rps": 104.74491948477423,
+        "steady_admitted_rps": 107.76094029599501,
+        "first_block_s": null,
+        "blocked_before_engagement": 0
+      },
+      "legit": {
+        "requests": 501,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 6.192731255826279,
+        "steady_admitted_rps": 5.512890499198644
+      },
+      "limit": {
+        "min_rps": 128.61106578888285,
+        "typical_rps": 145.3737313720053,
+        "below_half_baseline_s": 12.9
+      },
+      "polls": 13,
+      "flagged_polls": 13,
+      "mitigating_polls": 0,
+      "recovery": {
+        "recovered": false,
+        "seconds": null,
+        "observed_seconds": 91.4
+      }
+    },
+    {
+      "config": "fgb",
+      "scenario": "slowL",
+      "attack_sources": 1,
+      "seconds": 92.9,
+      "start": {
+        "cap_rps": 471.6641574506395,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": false,
+        "requests": 851,
+        "offered_rps": 9.155796738978214
+      },
+      "legit": {
+        "requests": 623,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 6.702774815961725,
+        "steady_admitted_rps": 4.949079318366603
+      },
+      "limit": {
+        "min_rps": 27.605401076214847,
+        "typical_rps": 27.605401076214847,
+        "below_half_baseline_s": 11.3
+      },
+      "polls": 16,
+      "flagged_polls": 16,
+      "mitigating_polls": 16,
+      "recovery": {
+        "recovered": true,
+        "seconds": 54.2,
+        "observed_seconds": 103.8
+      }
+    },
+    {
+      "config": "fgc",
+      "scenario": "slowL",
+      "attack_sources": 1,
+      "seconds": 94.5,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": false,
+        "requests": 850,
+        "offered_rps": 8.99613775745733
+      },
+      "legit": {
+        "requests": 650,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 6.879399461585017,
+        "steady_admitted_rps": 4.9320002293824885
+      },
+      "limit": {
+        "min_rps": 68.2,
+        "typical_rps": 68.2,
+        "below_half_baseline_s": 10.5
+      },
+      "polls": 16,
+      "flagged_polls": 16,
+      "mitigating_polls": 16,
+      "recovery": {
+        "recovered": true,
+        "seconds": 46.8,
+        "observed_seconds": 150.0
+      }
+    },
+    {
+      "config": "fgd",
+      "scenario": "slowL",
+      "attack_sources": 1,
+      "seconds": 92.3,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": false,
+        "requests": 850,
+        "offered_rps": 9.210024086875855
+      },
+      "legit": {
+        "requests": 615,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 6.66372330991606,
+        "steady_admitted_rps": 5.049260264098998
+      },
+      "limit": {
+        "min_rps": 105.00000000000001,
+        "typical_rps": 105.00000000000001,
+        "below_half_baseline_s": 6.8
+      },
+      "polls": 15,
+      "flagged_polls": 15,
+      "mitigating_polls": 15,
+      "recovery": {
+        "recovered": true,
+        "seconds": 40.3,
+        "observed_seconds": 150.0
+      }
+    },
+    {
+      "config": "fge",
+      "scenario": "slowL",
+      "attack_sources": 1,
+      "seconds": 94.6,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": false,
+        "requests": 861,
+        "offered_rps": 9.10398297342172
+      },
+      "legit": {
+        "requests": 582,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 6.153911835692731,
+        "steady_admitted_rps": 4.187197743873405
+      },
+      "limit": {
+        "min_rps": 22.40696318547429,
+        "typical_rps": 22.40696318547429,
+        "below_half_baseline_s": 13.5
+      },
+      "polls": 16,
+      "flagged_polls": 16,
+      "mitigating_polls": 16,
+      "recovery": {
+        "recovered": true,
+        "seconds": 80.0,
+        "observed_seconds": 150.0
+      }
+    },
+    {
+      "config": "fgf",
+      "scenario": "slowL",
+      "attack_sources": 1,
+      "seconds": 94.6,
+      "start": {
+        "cap_rps": 500.0,
+        "state": "normal",
+        "clean": true
+      },
+      "attack": {
+        "http": false,
+        "requests": 860,
+        "offered_rps": 9.086694762061022
+      },
+      "legit": {
+        "requests": 627,
+        "blocked": 0,
+        "blocked_fraction": 0.0,
+        "admitted_rps": 6.624834436991001,
+        "steady_admitted_rps": 4.374292594759608
+      },
+      "limit": {
+        "min_rps": 63.60000000000001,
+        "typical_rps": 63.60000000000001,
+        "below_half_baseline_s": 13.9
+      },
+      "polls": 16,
+      "flagged_polls": 16,
+      "mitigating_polls": 16,
+      "recovery": {
+        "recovered": true,
+        "seconds": 45.1,
+        "observed_seconds": 150.0
+      }
+    }
+  ],
+  "excluded_runs": []
+}

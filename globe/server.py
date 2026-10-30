@@ -76,6 +76,23 @@ def _container_running(service: str) -> bool:
     return bool(result.stdout.strip())
 
 
+def _remove_stale_container(service: str, profile: str) -> None:
+    """Removes a leftover stopped container for `service` before it is started.
+
+    A container left over from an earlier run can reference a Docker network
+    ID that no longer exists (the networks get recreated by `compose down/up`),
+    which makes `compose up` fail with a networking error until the container
+    is removed by hand. Running containers are left alone so start stays
+    idempotent.
+    """
+    if _container_running(service):
+        return
+    subprocess.run(
+        ["docker", "compose", "--profile", profile, "rm", "-f", "-s", service],
+        capture_output=True, text=True, timeout=30,
+    )
+
+
 @app.get("/api/attacks/status")
 async def attacks_status():
     return {"running": {attack_type: _container_running(service) for attack_type, (service, _) in ATTACKS.items()}}
@@ -86,6 +103,7 @@ async def attacks_start(attack_type: str):
     if attack_type not in ATTACKS:
         raise HTTPException(404, f"unknown attack type: {attack_type}")
     service, profile = ATTACKS[attack_type]
+    _remove_stale_container(service, profile)
     result = subprocess.run(
         ["docker", "compose", "--profile", profile, "up", "-d", service],
         capture_output=True, text=True, timeout=120,

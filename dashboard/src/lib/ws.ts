@@ -8,8 +8,7 @@ export type ConnectionStatus = "connecting" | "open" | "closed";
 
 /**
  * Connects to threat-intel's `WebSocket /ws/threats` (proxied to `/ws` in
- * both dev and prod per PROJECT_EXECUTION_PLAN.md Architecture Decision
- * #4) and calls `onEvent` for every newly ingested IOC. Reconnects with
+ * both dev and prod) and calls `onEvent` for every newly ingested IOC. Reconnects with
  * exponential backoff so a transient backend restart doesn't require a
  * page reload.
  *

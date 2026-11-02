@@ -6,7 +6,7 @@ import type { SandboxAttacksStatus } from "../types/threat";
  * `GET /api/attacks/status` -- reached same-origin via the existing
  * `/api/sandbox/*` proxy rule (`vite.config.ts` dev / `nginx.conf` prod,
  * both wired in Stage E). This powers Overview's sandbox status widget
- * only (per the Stage G roadmap entry in PROJECT_EXECUTION_PLAN.md).
+ * only.
  *
  * Deliberately narrower than `src/lib/sandboxApi.ts`, the full typed
  * client (start/stop controls, feed, etc.) reserved for Stage H's ported

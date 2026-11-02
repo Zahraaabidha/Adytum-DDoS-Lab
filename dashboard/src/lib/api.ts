@@ -5,8 +5,7 @@ import type { paths as ThreatIntelPaths } from "../generated/threat-intel";
  * Typed client for the Global Threat Intelligence backend, generated
  * against services/threat-intel's own OpenAPI schema (see
  * src/generated/threat-intel.ts + package.json's "gen:threat-intel" script).
- * Base URL is same-origin in both dev (Vite proxy) and prod (nginx), per
- * PROJECT_EXECUTION_PLAN.md Architecture Decision #4.
+ * Base URL is same-origin in both dev (Vite proxy) and prod (nginx)
  */
 export const threatIntelApi = createClient<ThreatIntelPaths>({ baseUrl: "/" });
 

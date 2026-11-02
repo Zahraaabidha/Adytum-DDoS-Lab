@@ -1,12 +1,6 @@
 import type { BadgeTone } from "../ui";
 
-/**
- * category/attack_family/threat_type -> human-readable label, per the
- * Stage G roadmap entry in PROJECT_EXECUTION_PLAN.md ("New malicious IP
- * detected", "Botnet activity", "New C2 server"). Falls back to a
- * title-cased threat_type rather than a raw provider-specific string --
- * never invents a category that isn't present in the real data.
- */
+
 const CATEGORY_LABELS: Record<string, string> = {
   botnet: "Botnet activity",
   c2: "New C2 server",

@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import type { Mesh } from "three";
 import { latLonToVector3 } from "./geo";
 import { markerColor } from "./colorScale";
-import { GLOBE_RADIUS, MAX_LIVE_PULSES, PULSE_LIFETIME_MS } from "./constants";
+import { MARKER_BASE_RADIUS, MAX_LIVE_PULSES, PULSE_LIFETIME_MS } from "./constants";
 import type { LiveThreatEvent } from "../../types/threat";
 
 interface Pulse {
@@ -88,7 +88,7 @@ export function LivePulseLayer({ liveEvents }: LivePulseLayerProps) {
 
 function PulseRing({ pulse }: { pulse: Pulse }) {
   const ringRef = useRef<Mesh>(null);
-  const position = latLonToVector3(pulse.lat, pulse.lon, GLOBE_RADIUS + 0.002);
+  const position = latLonToVector3(pulse.lat, pulse.lon, MARKER_BASE_RADIUS + 0.006);
 
   useFrame(() => {
     const mesh = ringRef.current;

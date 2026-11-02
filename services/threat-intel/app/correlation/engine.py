@@ -25,7 +25,7 @@ sandbox feature value against any individual IOC's fields:
 `defense-engine` (`defense/engine.py`) is not modified by this stage --
 this module only parses output it already publishes for Grafana, over
 `public_net`, the network `threat-intel` and `defense-engine` already
-share (see PROJECT_EXECUTION_PLAN.md Stage I / Architecture Decision #1).
+share).
 """
 from __future__ import annotations
 

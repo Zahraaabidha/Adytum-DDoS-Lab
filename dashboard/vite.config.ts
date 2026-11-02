@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 
 // Dev-mode proxy so the browser stays same-origin against both backends,
 // mirroring the prod nginx reverse proxy (see docker-compose.yml's
-// dashboard service and PROJECT_EXECUTION_PLAN.md Architecture Decision #4).
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],

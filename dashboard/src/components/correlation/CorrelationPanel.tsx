@@ -7,7 +7,6 @@ import { useCorrelation } from "../../lib/queries";
  * `services/threat-intel/app/correlation/engine.py`). Mounted on Overview
  * rather than either module's own page, since it represents the
  * relationship *between* the two rather than belonging to one of them
- * (PROJECT_EXECUTION_PLAN.md Stage I).
  *
  * The `disclaimer` line is rendered unconditionally whenever the backend
  * has returned a response at all (available or not) -- it is never hidden

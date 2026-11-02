@@ -3,8 +3,7 @@ integration seam between the Global Threat Intelligence module and the
 Sandbox Lab. `threat-intel` reads `defense-engine`'s existing `/metrics`
 over `public_net`, the network the two already share; this endpoint adds
 no new network attachment, and `threat-intel` is not added to
-`target_net` to serve it (see `app/correlation/engine.py` and
-PROJECT_EXECUTION_PLAN.md Stage I).
+`target_net` to serve it.
 """
 import httpx
 from fastapi import APIRouter

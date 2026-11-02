@@ -21,7 +21,6 @@ export function GrafanaPanel() {
           className="inline-flex items-center gap-2 border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-accent hover:text-accent"
         >
           Open Grafana dashboard
-          <span aria-hidden>&nearr;</span>
         </a>
       </div>
       <div className="h-[80vh] min-h-[560px] max-h-[820px] w-full overflow-hidden border border-line bg-white">

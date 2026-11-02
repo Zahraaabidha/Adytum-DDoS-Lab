@@ -10,7 +10,6 @@ import { EXTERNAL_MARKER_COLOR, SANDBOX_MARKER_COLOR } from "./colorScale";
 import { MarkerLayer } from "./MarkerLayer";
 import { LivePulseLayer } from "./LivePulseLayer";
 import { ArcLayer } from "./ArcLayer";
-import { Tooltip } from "./Tooltip";
 import { GlobeFilters } from "./GlobeFilters";
 import { DetailPanel } from "./DetailPanel";
 import { EmptyState } from "../ui";
@@ -40,6 +39,8 @@ export function ThreatGlobe() {
   const liveEvents = useThreatStore((state) => state.liveEvents);
   const { markers, latestSandboxEvent, isLoading, isError, hasData } = useGlobeMarkers(filters);
   const sandboxCount = useMemo(() => markers.filter((m) => m.ioc_type === "sandbox").length, [markers]);
+  // Rotation pauses while the pointer is over the globe so markers stay put and can be hovered and clicked.
+  const [pointerInside, setPointerInside] = useState(false);
   const [hovered, setHovered] = useState<ThreatEvent | null>(null);
   const [selected, setSelected] = useState<ThreatEvent | null>(null);
 
@@ -53,7 +54,11 @@ export function ThreatGlobe() {
   );
 
   return (
-    <div className="relative h-[calc(100vh-20rem)] min-h-[560px] w-full overflow-hidden border border-line bg-white">
+    <div
+      className="relative h-[calc(100vh-20rem)] min-h-[560px] w-full overflow-hidden border border-line bg-white"
+      onPointerEnter={() => setPointerInside(true)}
+      onPointerLeave={() => setPointerInside(false)}
+    >
       <GlobeFilters />
 
       {/*
@@ -92,14 +97,13 @@ export function ThreatGlobe() {
           <MarkerLayer events={markers} onHover={setHovered} onSelect={setSelected} />
           <LivePulseLayer liveEvents={mergedLiveEvents} />
           <ArcLayer events={markers} />
-          <Tooltip event={hovered} />
           <OrbitControls
             enablePan={false}
             minDistance={3}
             maxDistance={10}
             rotateSpeed={0.4}
             enableDamping
-            autoRotate={!hovered && !selected}
+            autoRotate={!pointerInside && !hovered && !selected}
             autoRotateSpeed={0.35}
             dampingFactor={0.08}
           />

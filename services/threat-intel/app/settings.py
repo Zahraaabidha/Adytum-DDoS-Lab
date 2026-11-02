@@ -45,7 +45,6 @@ class Settings(BaseSettings):
     # only -- see app/correlation/engine.py). `defense-engine` is on the
     # sandbox side of the project but is reached read-only, over the
     # `public_net` the two modules already share; this is the one approved
-    # integration seam (PROJECT_EXECUTION_PLAN.md Stage I). ---
     DEFENSE_ENGINE_METRICS_URL: str = "http://defense-engine:9300/metrics"
     CORRELATION_MIN_CONFIDENCE: float = 0.7
     CORRELATION_WINDOW_HOURS: int = 24

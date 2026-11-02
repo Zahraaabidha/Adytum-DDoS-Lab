@@ -37,7 +37,7 @@ export function threatTypeColor(threatType: string): string {
 }
 
 /** External indicators from threat feeds vs attacks actually observed by the sandbox. */
-export const EXTERNAL_MARKER_COLOR = "#2f7f7a";
+export const EXTERNAL_MARKER_COLOR = "#0b5d57";
 export const SANDBOX_MARKER_COLOR = "#c2410c";
 
 export function markerColor(event: { ioc_type: string }): string {

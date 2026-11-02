@@ -28,3 +28,10 @@ defense/classifier/mitigation-comparison*.json
 !defense/classifier/mitigation-comparison.json
 # Accidental shell-typo file
 /e config --quiet
+
+# MaxMind GeoLite2 databases (licensed, large)
+data/geoip/
+
+# MaxMind GeoLite2 databases (licensed, large)
+data/geoip/
+.env 

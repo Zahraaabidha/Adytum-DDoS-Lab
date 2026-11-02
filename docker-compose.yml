@@ -132,6 +132,9 @@ services:
       - attacker-recordings:/app/recordings:ro
       # Suricata's EVE JSON, read-only: alerts are shown and correlated, never used to block traffic
       - suricata-logs:/var/log/suricata:ro
+      # Detector history and unified incidents (one SQLite file, see defense/state_store.py). A volume of its own,
+      # not the PostgreSQL service: that one is deliberately kept off the lab networks the engine sits on.
+      - defense-state:/data
     ports:
       - "${SENTINEL_BIND:-127.0.0.1}:9300:9300"
     depends_on: [prometheus]
@@ -361,7 +364,8 @@ services:
       MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}
       GEOIP_DB_DIR: /app/data/geoip
     volumes:
-      - threat-intel-geoip:/app/data/geoip
+      # Host bind mount: MaxMind .mmdb files live in ./data/geoip (read/write so the updater can refresh them).
+      - ./data/geoip:/app/data/geoip
     ports:
       - "${SENTINEL_BIND:-127.0.0.1}:9400:9400"
     depends_on:
@@ -393,6 +397,7 @@ services:
 
 volumes:
   suricata-logs:
+  defense-state:
   threat-intel-db-data:
   threat-intel-geoip:
   # Shared between attacker-*, globe, and defense-engine. Deliberately a

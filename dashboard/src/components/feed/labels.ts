@@ -33,33 +33,25 @@ export function humanLabel(event: { category: string | null; attack_family: stri
   return `New ${titleCase(event.threat_type)} indicator`;
 }
 
-export type SeverityLevel = "critical" | "high" | "medium" | "low";
+export type SeverityLevel = "high" | "medium" | "low" | "unclassified";
 
 /**
- * Confidence-derived severity bucket -- `confidence_score` is the only
- * real, non-fabricated signal `Ioc` carries for "how bad is this," so
- * severity is a direct, documented mapping of that field rather than an
- * invented metric. Thresholds chosen to split the observed 0-1 confidence
- * range into four roughly actionable bands; adjust here (one place) if
- * real ingested data shows this skews too high/low.
+ * Severity is only ever taken from a source that actually states one
+ * (Suricata's rule priority, the defense-engine incident rule). Threat-intel
+ * indicators carry no severity field -- `confidence_score` measures how sure
+ * the feeds are that an indicator is malicious, not how severe it is -- so
+ * those are Unclassified rather than being bucketed from confidence.
  */
-export function severityFromConfidence(confidenceScore: number): SeverityLevel {
-  if (confidenceScore >= 0.8) return "critical";
-  if (confidenceScore >= 0.6) return "high";
-  if (confidenceScore >= 0.4) return "medium";
-  return "low";
-}
-
 export const SEVERITY_TONE: Record<SeverityLevel, BadgeTone> = {
-  critical: "danger",
-  high: "warn",
-  medium: "accent",
+  high: "danger",
+  medium: "warn",
   low: "neutral",
+  unclassified: "neutral",
 };
 
 export const SEVERITY_LABEL: Record<SeverityLevel, string> = {
-  critical: "Critical",
   high: "High",
   medium: "Medium",
   low: "Low",
+  unclassified: "Unclassified",
 };

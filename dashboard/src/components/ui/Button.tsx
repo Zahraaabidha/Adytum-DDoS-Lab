@@ -8,16 +8,16 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-slate-900 hover:bg-accent/90",
-  secondary: "bg-white/10 text-slate-200 hover:bg-white/20",
-  danger: "bg-danger/90 text-slate-900 hover:bg-danger",
+  primary: "bg-accent text-white hover:bg-accent/90",
+  secondary: "border border-line bg-white text-ink hover:bg-slate-50",
+  danger: "bg-danger text-white hover:bg-danger/90",
 };
 
 export function Button({ variant = "secondary", className, ...props }: ButtonProps) {
   return (
     <button
       className={clsx(
-        "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        " px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         VARIANT_CLASSES[variant],
         className,
       )}

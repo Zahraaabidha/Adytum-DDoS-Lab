@@ -16,10 +16,12 @@ router = APIRouter(prefix="/api/geoip", tags=["geoip"])
 async def geoip_status():
     settings = get_settings()
     db_dir = Path(settings.GEOIP_DB_DIR)
+    enricher = get_enricher()
     return {
+        **enricher.status(),
         "license_key_configured": bool(settings.MAXMIND_LICENSE_KEY),
         "city_db_present": (db_dir / CITY_DB_FILENAME).exists(),
         "asn_db_present": (db_dir / ASN_DB_FILENAME).exists(),
-        "enrichment_available": get_enricher().is_available(),
+        "enrichment_available": enricher.is_available(),
         "fallback_api_enabled": settings.GEOIP_FALLBACK_API_ENABLED,
     }

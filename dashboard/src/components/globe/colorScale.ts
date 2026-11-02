@@ -8,18 +8,18 @@ import { Color } from "three";
  * provider/threat_type value never silently blends into the background.
  */
 const KNOWN_THREAT_COLORS: Record<string, string> = {
-  malware: "#f87171", // danger
-  botnet: "#facc15", // warn
-  c2: "#c084fc",
-  phishing: "#fb923c",
-  spam: "#a3a3a3",
-  scanning: "#38bdf8", // accent
-  exploit: "#f472b6",
-  vulnerable: "#facc15",
-  ddos: "#f87171",
+  malware: "#b42318", // danger
+  botnet: "#b7791f", // warn
+  c2: "#2b2f33",
+  phishing: "#c2410c",
+  spam: "#9aa0a6",
+  scanning: "#2f7f7a", // accent
+  exploit: "#5f6b73",
+  vulnerable: "#b7791f",
+  ddos: "#b42318",
 };
 
-const FALLBACK_PALETTE = ["#4ade80", "#38bdf8", "#c084fc", "#fb923c", "#facc15"];
+const FALLBACK_PALETTE = ["#2f7f7a", "#2b2f33", "#8a949b", "#b7791f", "#5f6b73"];
 
 function hashString(value: string): number {
   let hash = 0;

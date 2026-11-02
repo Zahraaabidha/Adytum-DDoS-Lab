@@ -25,42 +25,41 @@ export function Settings() {
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-100">Service health</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink">Service health</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Card>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">threat-intel</span>
+              <span className="text-xs text-ink-muted">threat-intel</span>
               <Badge tone={threatIntelHealthError ? "danger" : "ok"}>
                 {threatIntelHealthError ? "Unreachable" : "Healthy"}
               </Badge>
             </div>
             {threatIntelHealth && (
-              <pre className="mt-2 overflow-x-auto text-[10px] text-slate-500">
-                {JSON.stringify(threatIntelHealth, null, 2)}
-              </pre>
+              <p className="mt-2 text-xs text-ink-muted">Service reports status: {String((threatIntelHealth as { status?: unknown }).status ?? "ok")}.</p>
             )}
           </Card>
 
           <Card>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">defense-engine</span>
+              <span className="text-xs text-ink-muted">defense-engine</span>
               <Badge tone={defenseHealthError ? "danger" : "ok"}>
                 {defenseHealthError ? "Unreachable" : "Healthy"}
               </Badge>
             </div>
             {defenseHealth && (
-              <pre className="mt-2 overflow-x-auto text-[10px] text-slate-500">
-                {JSON.stringify(defenseHealth, null, 2)}
-              </pre>
+              <dl className="mt-2 space-y-1 text-xs text-ink-muted">
+                <div className="flex justify-between"><dt>ML model</dt><dd className="text-ink">{defenseHealth.model_loaded ? "Loaded" : "Not loaded"}</dd></div>
+                <div className="flex justify-between"><dt>Mitigation policy</dt><dd className="text-ink">{defenseHealth.policy}</dd></div>
+              </dl>
             )}
           </Card>
 
           <Card>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">Live WebSocket (/ws/threats)</span>
+              <span className="text-xs text-ink-muted">Live WebSocket (/ws/threats)</span>
               <Badge tone={WS_TONE[connectionStatus]}>{connectionStatus}</Badge>
             </div>
-            <p className="mt-2 text-[10px] text-slate-500">
+            <p className="mt-2 text-[10px] text-ink-muted">
               Reflects this browser tab's own connection to threat-intel's live event stream.
             </p>
           </Card>
@@ -68,13 +67,13 @@ export function Settings() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-100">Ingestion providers</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink">Ingestion providers</h2>
         {providersError && <EmptyState title="Provider status unavailable" hint="/api/providers/status did not respond." />}
-        {providersLoading && !providersError && <p className="text-xs text-slate-500">Loading...</p>}
+        {providersLoading && !providersError && <p className="text-xs text-ink-muted">Loading...</p>}
         {!providersLoading && !providersError && (
-          <div className="overflow-x-auto rounded-xl border border-white/10">
+          <div className="overflow-x-auto  border border-line">
             <table className="min-w-full text-left text-xs">
-              <thead className="bg-white/5 text-slate-400">
+              <thead className="bg-slate-50 text-ink-muted">
                 <tr>
                   <th className="px-3 py-2 font-medium">Provider</th>
                   <th className="px-3 py-2 font-medium">Status</th>
@@ -83,18 +82,18 @@ export function Settings() {
                   <th className="px-3 py-2 font-medium">Event kind</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-line">
                 {(providers ?? []).map((provider) => (
                   <tr key={provider.name}>
-                    <td className="px-3 py-2 text-slate-200">{provider.name}</td>
+                    <td className="px-3 py-2 text-ink">{provider.name}</td>
                     <td className="px-3 py-2">
                       <Badge tone={provider.enabled ? "ok" : "neutral"}>
                         {provider.enabled ? "Enabled" : provider.requires_key ? "Disabled (missing API key)" : "Disabled"}
                       </Badge>
                     </td>
-                    <td className="px-3 py-2 text-slate-400">{provider.requires_key ? "Yes" : "No"}</td>
-                    <td className="px-3 py-2 text-slate-400">{provider.poll_interval_seconds}s</td>
-                    <td className="px-3 py-2 text-slate-400">{provider.event_kind}</td>
+                    <td className="px-3 py-2 text-ink-muted">{provider.requires_key ? "Yes" : "No"}</td>
+                    <td className="px-3 py-2 text-ink-muted">{provider.poll_interval_seconds}s</td>
+                    <td className="px-3 py-2 text-ink-muted">{provider.event_kind}</td>
                   </tr>
                 ))}
               </tbody>
@@ -104,9 +103,9 @@ export function Settings() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-100">GeoIP enrichment</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink">GeoIP enrichment</h2>
         {geoipError && <EmptyState title="GeoIP status unavailable" hint="/api/geoip/status did not respond." />}
-        {geoipLoading && !geoipError && <p className="text-xs text-slate-500">Loading...</p>}
+        {geoipLoading && !geoipError && <p className="text-xs text-ink-muted">Loading...</p>}
         {!geoipLoading && !geoipError && geoip && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             <StatusItem label="License key configured" ok={geoip.license_key_configured} />
@@ -117,7 +116,7 @@ export function Settings() {
           </div>
         )}
         {!geoipLoading && !geoipError && geoip && !geoip.enrichment_available && (
-          <p className="mt-3 text-[11px] text-slate-500">
+          <p className="mt-3 text-[11px] text-ink-muted">
             GeoIP enrichment is unavailable (no license key and/or database present) -- the 3D globe and map endpoint
             will show no geolocated threats until a MaxMind license key is supplied. This is expected in this
             environment, not an error.
@@ -131,7 +130,7 @@ export function Settings() {
 function StatusItem({ label, ok }: { label: string; ok: boolean }) {
   return (
     <Card className="flex flex-col gap-1 p-3">
-      <span className="text-[11px] text-slate-400">{label}</span>
+      <span className="text-[11px] text-ink-muted">{label}</span>
       <Badge tone={ok ? "ok" : "neutral"} className="w-fit">
         {ok ? "Yes" : "No"}
       </Badge>

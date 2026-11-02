@@ -13,6 +13,7 @@ geolocation enrichment (local MaxMind GeoLite2, own updater scheduler,
 independent of the provider ingestion loop it plugs into via a single call
 in `ingest.py`).
 """
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -27,6 +28,7 @@ from app.api.routes_ws import router as ws_router
 from app.common import cache
 from app.common import models as _models  # noqa: F401  -- import registers ORM tables on Base.metadata before init_db()
 from app.common.db import dispose_engine, init_db
+from app.enrich import backfill_geo
 from app.geoip_updater import start_geoip_scheduler, stop_geoip_scheduler
 from app.ingest import start_scheduler, stop_scheduler
 from app.logging_config import configure_logging, get_logger
@@ -35,6 +37,13 @@ from app.settings import get_settings
 
 configure_logging()
 log = get_logger("threat-intel")
+
+
+async def _startup_backfill() -> None:
+    try:
+        await backfill_geo()
+    except Exception as exc:  # noqa: BLE001 -- backfill must never take the service down
+        log.error("GeoIP startup backfill failed: %s", exc)
 
 
 @asynccontextmanager
@@ -50,9 +59,12 @@ async def lifespan(_: FastAPI):
             log.warning("Provider disabled: %s (missing required configuration)", provider.name)
     start_scheduler(settings)
     start_geoip_scheduler(settings)
+    # Existing rows may have been ingested before a database was available.
+    backfill_task = asyncio.create_task(_startup_backfill())
     log.info("Startup complete")
     yield
     log.info("Shutting down threat-intel service")
+    backfill_task.cancel()
     await stop_scheduler()
     stop_geoip_scheduler()
     await cache.close()

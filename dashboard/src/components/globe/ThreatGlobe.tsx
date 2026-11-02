@@ -5,26 +5,15 @@ import { useThreatStore } from "../../store/threatStore";
 import { MAX_RENDERED_MARKERS } from "./useThreatMapData";
 import { useGlobeMarkers } from "./useGlobeMarkers";
 import { sandboxEventToLiveThreatEvent } from "./sandboxMarkers";
-import { generateEarthTexture } from "./earthTexture";
+import { GlobeBase } from "./GlobeBase";
 import { MarkerLayer } from "./MarkerLayer";
 import { LivePulseLayer } from "./LivePulseLayer";
 import { ArcLayer } from "./ArcLayer";
 import { Tooltip } from "./Tooltip";
 import { GlobeFilters } from "./GlobeFilters";
 import { DetailPanel } from "./DetailPanel";
-import { GLOBE_RADIUS } from "./constants";
 import { EmptyState } from "../ui";
 import type { ThreatEvent } from "../../types/threat";
-
-function GlobeSphere() {
-  const texture = useMemo(() => generateEarthTexture(), []);
-  return (
-    <mesh>
-      <sphereGeometry args={[GLOBE_RADIUS, 48, 48]} />
-      <meshBasicMaterial map={texture} />
-    </mesh>
-  );
-}
 
 /**
  * The Global Threat Intelligence 3D globe (Stage F). Primarily visualizes
@@ -62,7 +51,7 @@ export function ThreatGlobe() {
   );
 
   return (
-    <div className="relative h-[calc(100vh-6rem)] min-h-[480px] w-full overflow-hidden rounded-xl border border-white/10 bg-panel">
+    <div className="relative h-[calc(100vh-12rem)] min-h-[480px] w-full overflow-hidden  border border-line bg-gradient-to-b from-white to-slate-100 ">
       <GlobeFilters />
 
       {/*
@@ -95,8 +84,9 @@ export function ThreatGlobe() {
           camera={{ position: [0, 0, 5.2], fov: 45 }}
           gl={{ antialias: true, powerPreference: "high-performance" }}
         >
-          <ambientLight intensity={1.2} />
-          <GlobeSphere />
+          <ambientLight intensity={1.6} />
+          <directionalLight position={[5, 3, 5]} intensity={1.2} />
+          <GlobeBase />
           <MarkerLayer events={markers} onHover={setHovered} onSelect={setSelected} />
           <LivePulseLayer liveEvents={mergedLiveEvents} />
           <ArcLayer events={markers} />
@@ -113,13 +103,13 @@ export function ThreatGlobe() {
       )}
 
       {!hasData && isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500">
+        <div className="absolute inset-0 flex items-center justify-center text-xs text-ink-muted">
           Loading threat map...
         </div>
       )}
 
       {hasData && (
-        <div className="absolute bottom-3 right-3 z-10 text-[10px] text-slate-500">
+        <div className="absolute bottom-3 right-3 z-10 text-[10px] text-ink-muted">
           {markers.length} of up to {MAX_RENDERED_MARKERS}+ rendered
         </div>
       )}

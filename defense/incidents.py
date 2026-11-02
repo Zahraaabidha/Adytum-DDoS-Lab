@@ -218,6 +218,11 @@ def _evidence(kind: str | None, suricata: dict, ml: dict, metrics: dict) -> list
     if ml["state"] == "flagged":
         out.append(f"Isolation Forest: flagged {ml['flagged_polls']} of {ml['polls']} polls (longest run {ml['longest_run']}), "
                    f"peak confidence {ml['peak_confidence']:.2f}.")
+        shown = {"request_rate": "request rate {:.1f}/s", "active_connections": "active connections {:.0f}",
+                 "established_connections": "established sockets {:.0f}"}
+        parts = [text.format(ml["features"][k]) for k, text in shown.items() if ml.get("features") and k in ml["features"]]
+        if parts:
+            out.append("Peak live features: " + ", ".join(parts) + ".")
     elif ml["state"] == "not_flagged":
         out.append(f"Isolation Forest: did not flag (longest flagged run {ml['longest_run']} of {ml['polls']} polls, "
                    f"peak confidence {ml['peak_confidence']:.2f}).")
@@ -270,7 +275,8 @@ def assemble(skeleton: dict | None, ml_episode: dict | None, history: Sequence[d
         "mitigation": mitigation_view(kind, history, start, end, baseline_cap, policy, current_cap),
         "evidence": _evidence(kind, suricata, ml, metrics),
         "caveats": _caveats(kind, suricata, ml)
-        + (["Elevated traffic with no Suricata alert and no attack type may be legitimate high load."] if skeleton is None else []),
+        + (["No Suricata alert and no attack type: this may be legitimate high load or a detector false positive (the model "
+           "also flags about 4.5% of idle samples, in runs)."] if skeleton is None else []),
     }
 
 

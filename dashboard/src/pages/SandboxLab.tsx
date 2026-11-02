@@ -29,20 +29,20 @@ export function SandboxLab() {
 
       <Card className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between">
-          <h3 className="text-xs font-medium text-slate-300">Live event feed</h3>
-          {feed?.run_name && <span className="text-[11px] text-slate-500">run: {feed.run_name}</span>}
+          <h3 className="text-xs font-medium text-ink-soft">Live event feed</h3>
+          {feed?.run_name && <span className="text-[11px] text-ink-muted">run: {feed.run_name}</span>}
         </div>
         {isError && (
           <EmptyState title="Feed unavailable" hint="globe:8090's /api/feed did not respond." />
         )}
-        {!isError && isLoading && <p className="text-xs text-slate-500">Loading...</p>}
+        {!isError && isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
         {!isError && !isLoading && events.length === 0 && (
           <EmptyState title="No recent events" hint="Start an attack scenario above to populate the live feed." />
         )}
         {events.length > 0 && (
           <div className="max-h-72 overflow-y-auto">
             <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-panelmuted/95 text-slate-400">
+              <thead className="sticky top-0 bg-white text-ink-muted">
                 <tr>
                   <th className="py-1 pr-2 font-medium">Time</th>
                   <th className="py-1 pr-2 font-medium">Attack</th>
@@ -53,7 +53,7 @@ export function SandboxLab() {
               </thead>
               <tbody>
                 {events.map((event, i) => (
-                  <tr key={`${event.ts}-${i}`} className="border-t border-white/5 text-slate-300">
+                  <tr key={`${event.ts}-${i}`} className="border-t border-line text-ink-soft">
                     <td className="py-1 pr-2 whitespace-nowrap">{new Date(event.ts * 1000).toLocaleTimeString()}</td>
                     <td className="py-1 pr-2">{event.attack_type}</td>
                     <td className="py-1 pr-2">{event.target}</td>

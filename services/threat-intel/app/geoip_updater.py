@@ -23,6 +23,7 @@ import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.common.geoip import get_enricher
+from app.enrich import backfill_geo
 from app.logging_config import get_logger
 from app.provider.http import request_with_retry
 from app.settings import Settings, get_settings
@@ -46,7 +47,8 @@ async def _download_edition(client: httpx.AsyncClient, edition_id: str, license_
         )
         response.raise_for_status()
     except Exception as exc:  # noqa: BLE001 -- a download failure must degrade, not crash the updater
-        log.warning("GeoIP updater: failed to download %s: %s", edition_id, exc)
+        # Never log `exc` itself: httpx puts the full request URL (with the license key) in its message.
+        log.warning("GeoIP updater: failed to download %s (%s)", edition_id, type(exc).__name__)
         return False
 
     try:
@@ -79,13 +81,15 @@ async def run_update_cycle(settings: Settings | None = None) -> None:
 
     dest_dir = Path(settings.GEOIP_DB_DIR)
     any_refreshed = False
-    async with httpx.AsyncClient(timeout=DOWNLOAD_TIMEOUT) as client:
+    # MaxMind answers with a 302 to a signed download URL.
+    async with httpx.AsyncClient(timeout=DOWNLOAD_TIMEOUT, follow_redirects=True) as client:
         for edition_id in EDITIONS:
             if await _download_edition(client, edition_id, settings.MAXMIND_LICENSE_KEY, dest_dir):
                 any_refreshed = True
 
     if any_refreshed:
         get_enricher().reload()  # pick up the new file(s) without a service restart
+        await backfill_geo()
 
 
 def start_geoip_scheduler(settings: Settings) -> AsyncIOScheduler | None:

@@ -82,3 +82,41 @@ def test_city_db_present_but_asn_db_missing_still_enriches_city(tmp_path, monkey
     assert result.country == "US"
     assert result.asn is None
     assert result.organization is None
+
+
+@pytest.mark.parametrize(
+    "address",
+    ["10.1.2.3", "172.16.0.1", "192.168.1.1", "127.0.0.1", "169.254.1.1", "100.64.0.1", "0.0.0.0", "240.0.0.1", "224.0.0.1", "::1", "fe80::1", "not-an-ip", ""],
+)
+def test_non_public_or_invalid_addresses_are_never_looked_up(tmp_path, monkeypatch, address):
+    import shutil
+
+    shutil.copy(FIXTURES_DIR / "GeoLite2-City-Test.mmdb", tmp_path / "GeoLite2-City.mmdb")
+    monkeypatch.setattr("app.common.geoip.get_settings", lambda: make_settings(GEOIP_DB_DIR=str(tmp_path)))
+
+    assert GeoIpEnricher().lookup(address) is None
+
+
+def test_status_reports_what_is_actually_loaded(tmp_path, monkeypatch):
+    import shutil
+
+    shutil.copy(FIXTURES_DIR / "GeoLite2-City-Test.mmdb", tmp_path / "GeoLite2-City.mmdb")
+    monkeypatch.setattr("app.common.geoip.get_settings", lambda: make_settings(GEOIP_DB_DIR=str(tmp_path)))
+
+    status = GeoIpEnricher().status()
+    assert status["city_db_loaded"] is True
+    assert status["asn_db_loaded"] is False
+    assert status["city_db_build_date"] is not None
+    assert status["asn_db_build_date"] is None
+
+
+def test_status_with_no_databases(tmp_path, monkeypatch):
+    monkeypatch.setattr("app.common.geoip.get_settings", lambda: make_settings(GEOIP_DB_DIR=str(tmp_path)))
+
+    status = GeoIpEnricher().status()
+    assert status == {
+        "city_db_loaded": False,
+        "asn_db_loaded": False,
+        "city_db_build_date": None,
+        "asn_db_build_date": None,
+    }

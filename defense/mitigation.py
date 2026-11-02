@@ -72,6 +72,21 @@ class GuardedPolicy:
             raw = self.baseline * 0.1
         return max(self.min_cap, min(self.baseline, raw))
 
+    def snapshot(self) -> dict:
+        """What the policy has learned and decided so far, for `policy_state.py` to save across an engine restart."""
+        return {"limit": self.limit, "state": self.state, "recent_normal": list(self._recent_normal)}
+
+    def restore(self, limit: float, state: str, recent_normal: list[float]) -> None:
+        """Puts back state that `policy_state.plan_restore` has already validated. The decision counters start from
+        zero: a restored policy must see fresh flagged or calm polls before it enters or leaves mitigation, and the
+        polls still waiting for confirmation are not carried over. `update` itself is unchanged."""
+        self.limit = min(self.baseline, max(self.min_cap, limit))
+        self.state = state
+        self._recent_normal.extend(recent_normal)
+        self._pending.clear()
+        self._flagged = 0
+        self._calm = 0
+
     def update(self, confidence: float, request_rate: float, blocked_rps: float) -> float:
         """One poll. `request_rate` is the load reaching the targets, `blocked_rps` what the
         limiter rejected. Returns the new cap."""

@@ -9,8 +9,23 @@ body,
 
 body {
   margin: 0;
-  background-color: #0f1420;
-  color: #e2e8f0;
-  font: 15px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
+  background-color: #f3f4f5;
+  color: #16191c;
+  font: 15px/1.5 "Manrope", system-ui, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+input,
+select,
+textarea {
+  color: #16191c;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid #2f7f7a;
+  outline-offset: 2px;
 }

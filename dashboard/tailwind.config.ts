@@ -5,12 +5,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        panel: "#0f1420",
-        panelmuted: "#161c2c",
-        accent: "#38bdf8",
-        danger: "#f87171",
-        warn: "#facc15",
-        ok: "#4ade80",
+        panel: "#ffffff",
+        panelmuted: "#f6f7fb",
+        ink: { DEFAULT: "#16191c", soft: "#33383d", muted: "#5f6770" },
+        line: "#dcdfe2",
+        accent: "#2f7f7a",
+        danger: "#b42318",
+        warn: "#b7791f",
+        ok: "#2f7f7a",
+      },
+      boxShadow: {
+        card: "0 1px 2px rgba(31,36,48,0.04), 0 4px 16px rgba(31,36,48,0.04)",
       },
     },
   },

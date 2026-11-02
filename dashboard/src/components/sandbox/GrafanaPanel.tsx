@@ -15,10 +15,10 @@ import { Card } from "../ui";
 export function GrafanaPanel() {
   return (
     <Card className="flex flex-col gap-2">
-      <h3 className="text-xs font-medium text-slate-300">Live metrics (Grafana)</h3>
-      <div className="h-[420px] w-full overflow-hidden rounded-lg border border-white/10">
+      <h3 className="text-xs font-medium text-ink-soft">Live metrics (Grafana)</h3>
+      <div className="h-[420px] w-full overflow-hidden  border border-line">
         <iframe
-          title="SENTINEL LAB - Overview"
+          title="Adytum - Overview"
           src="/grafana/d/sentinel-overview/sentinel-lab-overview?orgId=1&refresh=5s&kiosk=tv&theme=dark"
           className="h-full w-full border-0"
         />

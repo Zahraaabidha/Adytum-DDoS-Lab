@@ -1,6 +1,6 @@
 import { Badge, Card } from "../ui";
 import { threatTypeColor } from "../globe/colorScale";
-import { humanLabel, severityFromConfidence, SEVERITY_LABEL, SEVERITY_TONE } from "./labels";
+import { humanLabel } from "./labels";
 import type { ThreatEvent } from "../../types/threat";
 
 interface ThreatCardProps {
@@ -14,7 +14,6 @@ interface ThreatCardProps {
  * `Card`/`Badge` primitives, per requirement to reuse shared UI components.
  */
 export function ThreatCard({ event, compact = false }: ThreatCardProps) {
-  const severity = severityFromConfidence(event.confidence_score);
   const color = threatTypeColor(event.threat_type);
 
   return (
@@ -23,39 +22,39 @@ export function ThreatCard({ event, compact = false }: ThreatCardProps) {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span
-              className="inline-block h-2 w-2 shrink-0 rounded-full"
+              className="inline-block h-2 w-2 shrink-0 "
               style={{ backgroundColor: color }}
               aria-hidden
             />
-            <p className="truncate text-sm font-medium text-slate-100">{humanLabel(event)}</p>
+            <p className="truncate text-sm font-medium text-ink">{humanLabel(event)}</p>
           </div>
-          <p className="mt-0.5 truncate text-xs text-slate-400">
+          <p className="mt-0.5 truncate text-xs text-ink-muted">
             {event.ioc}
             {event.country ? ` · ${event.country}` : ""}
           </p>
         </div>
-        <Badge tone={SEVERITY_TONE[severity]} className="shrink-0">
-          {SEVERITY_LABEL[severity]}
+        <Badge tone="neutral" className="shrink-0">
+          Unclassified
         </Badge>
       </div>
 
       {!compact && (
-        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-400 sm:grid-cols-4">
+        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-ink-muted sm:grid-cols-4">
           <div>
-            <dt className="text-slate-500">Type</dt>
-            <dd className="text-slate-300">{event.threat_type}</dd>
+            <dt className="text-ink-muted">Type</dt>
+            <dd className="text-ink-soft">{event.threat_type}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Confidence</dt>
-            <dd className="text-slate-300">{Math.round(event.confidence_score * 100)}%</dd>
+            <dt className="text-ink-muted">Confidence</dt>
+            <dd className="text-ink-soft">{Math.round(event.confidence_score * 100)}%</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Sources</dt>
-            <dd className="text-slate-300">{event.source_count}</dd>
+            <dt className="text-ink-muted">Sources</dt>
+            <dd className="text-ink-soft">{event.source_count}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Last seen</dt>
-            <dd className="text-slate-300">{new Date(event.last_seen).toLocaleString()}</dd>
+            <dt className="text-ink-muted">Last seen</dt>
+            <dd className="text-ink-soft">{new Date(event.last_seen).toLocaleString()}</dd>
           </div>
         </dl>
       )}

@@ -18,7 +18,7 @@ from pathlib import Path
 
 import httpx
 import joblib
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
 from starlette.responses import Response
@@ -27,6 +27,8 @@ from classifier.live_features import LIVE_FEATURE_NAMES, LiveFeatures, _prom_que
 from classifier.scoring import attack_confidence
 from mitigation import MITIGATING, GuardedPolicy
 import incidents
+from policy_state import make_snapshot, plan_restore
+from state_store import StateStore
 from suricata_alerts import AlertStore, correlate, dns_addresses, tail_forever
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -86,7 +88,15 @@ def _eve_files() -> list[Path]:
 
 suricata_store = AlertStore(_eve_files, state_path=SURICATA_STATE_PATH, proxy_addresses=dns_addresses(SURICATA_PROXY_HOSTS))
 # Recent detector polls (ts, confidence, threshold, request_rate, state), only used to annotate Suricata alerts.
-_ml_history: deque[dict] = deque(maxlen=720)
+# Six hours, the same span as the in-memory Suricata alert history. Restored from the state store on start.
+_ml_history: deque[dict] = deque(maxlen=4320)
+# Small local SQLite file (defense/state_store.py): detector polls and unified incidents survive a restart.
+# Opened at startup, so importing this module never touches the filesystem.
+STATE_DB_PATH = Path(os.environ.get("SENTINEL_STATE_DB", "/data/state.db"))
+state_store: StateStore | None = None
+RESTORE_WINDOW_S = 6 * 3600
+# What was done with the saved guarded-policy state at startup (reported by /health).
+policy_restore_info: dict = {"mode": "none", "reason": "not attempted"}
 
 app = FastAPI(title="SENTINEL LAB defense engine")
 app.add_middleware(
@@ -220,6 +230,8 @@ async def detection_loop():
             MITIGATION_ACTIVE.set(1 if MITIGATION_POLICY == "guarded" and guard.state == MITIGATING else 0)
 
             _state["threshold"] = new_threshold
+            if MITIGATION_POLICY == "guarded" and state_store is not None:
+                await asyncio.to_thread(state_store.save_policy, make_snapshot(guard, _policy_config(), time.time()))
             _state["confidence"] = confidence
             _state["last_features"] = features
 
@@ -228,12 +240,16 @@ async def detection_loop():
             for name, value in zip(LIVE_FEATURE_NAMES, features.as_vector()):
                 FEATURE_GAUGES[name].set(value)
             log_features(features, confidence, new_threshold)
-            _ml_history.append({
+            poll = {
                 "ts": time.time(), "confidence": confidence, "threshold": new_threshold,
                 "request_rate": features.request_rate, "state": guard.state if MITIGATION_POLICY == "guarded" else None,
                 "features": dict(zip(LIVE_FEATURE_NAMES, features.as_vector())),
                 "blocked_rps": blocked_rps if MITIGATION_POLICY == "guarded" else None,
-            })
+                "model": MODEL_PATH.name if _model is not None else None,
+            }
+            _ml_history.append(poll)
+            if state_store is not None:
+                await asyncio.to_thread(state_store.save_poll, poll)
 
             if abs(new_threshold - old_threshold) > 0.5:
                 log_mitigation(features, confidence, old_threshold, new_threshold)
@@ -241,10 +257,71 @@ async def detection_loop():
             await asyncio.sleep(POLL_INTERVAL)
 
 
+def _restore_recent_actions(limit: int = 200) -> int:
+    """The engine's own mitigation log on disk -> the in-memory list behind /mitigations (lost on restart otherwise)."""
+    try:
+        lines = MITIGATION_LOG_PATH.read_text(encoding="utf-8").splitlines()[-limit:]
+    except OSError:
+        return 0
+    restored = []
+    for line in lines:
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(entry, dict) and "ts" in entry and "new_threshold" in entry:
+            restored.append(entry)
+    _state["recent_actions"] = restored + _state["recent_actions"]
+    return len(restored)
+
+
+def _policy_config() -> dict:
+    """The settings a saved policy snapshot must have been written under to be used again."""
+    return {"baseline": BASELINE_THRESHOLD, "min_cap": GUARD_MIN_CAP, "headroom": GUARD_HEADROOM,
+            "fallback_cap": GUARD_FALLBACK_CAP, "normal_polls": guard.normal_polls, "poll_interval": POLL_INTERVAL,
+            "model": MODEL_PATH.name if _model is not None else None}
+
+
+def _restore_policy(store: StateStore) -> None:
+    """Puts the guarded policy's cap and learned normal load back after a restart, if (and only as far as) they are
+    still valid. See policy_state.py: a stale or foreign snapshot is discarded and the policy starts as before."""
+    global policy_restore_info
+    if MITIGATION_POLICY != "guarded":
+        policy_restore_info = {"mode": "none", "reason": "policy is not guarded"}
+        return
+    plan = plan_restore(store.load_policy(), time.time(), _policy_config())
+    policy_restore_info = {k: plan[k] for k in ("mode", "reason", "age_s")}
+    if plan["mode"] != "none":
+        guard.restore(plan["limit"], plan["state"], plan["recent_normal"])
+        _state["threshold"] = guard.limit
+        RATE_LIMIT_THRESHOLD.set(guard.limit)
+        MITIGATION_ACTIVE.set(1 if guard.state == MITIGATING else 0)
+        policy_restore_info.update(limit=guard.limit, state=guard.state, normal_polls=len(plan["recent_normal"]))
+    log.info("Guarded policy restore: %s (%s)", plan["mode"], plan["reason"])
+
+
+async def _open_state_store() -> None:
+    """Opens the local state file and restores what the engine would otherwise have lost on restart."""
+    global state_store
+    store = await asyncio.to_thread(StateStore, STATE_DB_PATH)
+    if not store.ok:
+        log.warning("Detector history and incidents will not survive a restart: %s", store.error)
+        return
+    state_store = store
+    model_name = MODEL_PATH.name if _model is not None else None
+    restored = await asyncio.to_thread(store.load_polls, time.time() - RESTORE_WINDOW_S, _ml_history.maxlen, model_name)
+    _ml_history.extendleft(reversed(restored))  # anything polled since startup stays newer than what is restored
+    await asyncio.to_thread(_restore_policy, store)
+    actions = await asyncio.to_thread(_restore_recent_actions)
+    log.info("State restored from %s: %d detector polls, %d mitigation actions", STATE_DB_PATH, len(restored), actions)
+
+
 @app.on_event("startup")
 async def startup():
     log.info("Mitigation policy: %s; model: %s", MITIGATION_POLICY, MODEL_PATH.name if _model is not None else "NONE (pass-through)")
+    await _open_state_store()
     asyncio.create_task(detection_loop())
+    asyncio.create_task(incident_recorder())
     asyncio.create_task(tail_forever(suricata_store, lambda a: SURICATA_ALERTS.labels(
         signature_id=str(a["signature_id"]), severity=a["severity_label"]).inc()))
 
@@ -257,7 +334,7 @@ async def index():
     return {
         "service": "SENTINEL LAB defense engine",
         "status": "ok" if _model is not None else "running (no trained model loaded yet)",
-        "endpoints": ["/health", "/threshold", "/mitigations", "/evaluation", "/mitigation-report", "/suricata/alerts", "/suricata/summary", "/incidents", "/metrics"],
+        "endpoints": ["/health", "/threshold", "/mitigations", "/evaluation", "/mitigation-report", "/suricata/alerts", "/suricata/summary", "/incidents", "/incidents/{id}", "/metrics"],
         "dashboard": "http://localhost:8090/ (unified SENTINEL LAB dashboard)",
     }
 
@@ -365,11 +442,9 @@ async def _metric_series(kind: str, start: float, end: float):
     return series
 
 
-@app.get("/incidents")
-async def get_incidents(limit: int = 20):
-    """Suricata alerts, Isolation Forest detections and Prometheus metrics combined into incident records.
-    Advisory only: it describes what the existing detectors reported and never changes the rate limit."""
-    limit = max(1, min(limit, 50))
+async def _live_incidents(limit: int) -> list[tuple[dict, list[dict]]]:
+    """Incident records computed now from the alert history, the detector history and Prometheus, each with the
+    Suricata alerts that support it."""
     history = list(_ml_history)
     groups, lone = incidents.plan(suricata_store.recent(500), history)
     chosen = sorted([("group", g) for g in groups] + [("ml", e) for e in lone], key=lambda x: -x[1]["end"])[:limit]
@@ -377,22 +452,73 @@ async def get_incidents(limit: int = 20):
         _metric_series(g["attack_type"], g["start"], g["end"]) if kind == "group" else asyncio.sleep(0, None)
         for kind, g in chosen])
     now = time.time()
-    records = [
-        incidents.assemble(g if kind == "group" else None, g if kind == "ml" else None, history, series[i], now,
-                           baseline_cap=BASELINE_THRESHOLD, policy=MITIGATION_POLICY, current_cap=_state["threshold"],
-                           suricata_available=suricata_store.present(), ml_available=_model is not None)
+    return [
+        (incidents.assemble(g if kind == "group" else None, g if kind == "ml" else None, history, series[i], now,
+                            baseline_cap=BASELINE_THRESHOLD, policy=MITIGATION_POLICY, current_cap=_state["threshold"],
+                            suricata_available=suricata_store.present(), ml_available=_model is not None),
+         g["alerts"] if kind == "group" else [])
         for i, (kind, g) in enumerate(chosen)
     ]
+
+
+async def _incident_records(limit: int) -> list[dict]:
+    """Live incidents reconciled with the stored ones (frozen incidents are served as stored); live only if storage is down."""
+    live = await _live_incidents(max(limit, 50))
+    if state_store is not None:
+        stored = await asyncio.to_thread(state_store.reconcile, live, limit)
+        if stored is not None:
+            return stored
+    return [{**record, "source": "live"} for record, _ in live[:limit]]
+
+
+async def incident_recorder(interval: float = 15.0) -> None:
+    """Records incidents as they happen (even with no dashboard open), freezes finished ones and applies retention."""
+    last_prune = 0.0
+    while True:
+        await asyncio.sleep(interval)
+        if state_store is None:
+            continue
+        try:
+            await _incident_records(50)
+            await asyncio.to_thread(state_store.freeze_stale)
+            if time.time() - last_prune > 3600:
+                log.info("State retention: %s", await asyncio.to_thread(state_store.prune))
+                last_prune = time.time()
+        except Exception:  # persistence must never take the detection engine down
+            log.exception("Incident recorder error")
+
+
+@app.get("/incidents")
+async def get_incidents(limit: int = 20):
+    """Suricata alerts, Isolation Forest detections and Prometheus metrics combined into incident records.
+    Advisory only: it describes what the existing detectors reported and never changes the rate limit.
+    `source` is "live" while an incident is still being updated and "stored" once it is frozen in the state store."""
+    limit = max(1, min(limit, 50))
+    records = await _incident_records(limit)
+    history = list(_ml_history)
+    persistence = (await asyncio.to_thread(state_store.stats)) if state_store is not None \
+        else {"enabled": False, "error": "state store not opened"}
     return {
-        "generated_at": now, "incidents": records,
-        "inputs": {"suricata_files": len(_eve_files()), "ml_model_loaded": _model is not None,
-                   "ml_polls": len(history), "ml_window_seconds": (history[-1]["ts"] - history[0]["ts"]) if len(history) > 1 else 0},
+        "generated_at": time.time(), "incidents": records,
+        "inputs": {"suricata_files": len(_eve_files()), "ml_model_loaded": _model is not None, "ml_polls": len(history),
+                   "ml_window_seconds": (history[-1]["ts"] - history[0]["ts"]) if len(history) > 1 else 0,
+                   "persistence": persistence},
     }
+
+
+@app.get("/incidents/{incident_id}")
+async def get_incident(incident_id: str):
+    """One stored incident with its supporting Suricata alerts."""
+    record = await asyncio.to_thread(state_store.get, incident_id) if state_store is not None else None
+    if record is None:
+        raise HTTPException(404, "unknown incident (or persistence is off)")
+    return record
 
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "model_loaded": _model is not None, "model": _model_info, "policy": MITIGATION_POLICY}
+    return {"status": "ok", "model_loaded": _model is not None, "model": _model_info, "policy": MITIGATION_POLICY,
+            "policy_restore": policy_restore_info}
 
 
 @app.get("/metrics")

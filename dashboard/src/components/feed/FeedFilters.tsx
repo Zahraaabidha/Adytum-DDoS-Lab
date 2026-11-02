@@ -20,7 +20,7 @@ interface FeedFiltersProps {
 }
 
 const SELECT_CLASSES =
-  "rounded-lg border border-white/10 bg-panelmuted/60 px-2 py-1.5 text-xs text-slate-200 focus:border-accent/60 focus:outline-none";
+  " border border-line bg-white px-2 py-1.5 text-xs text-ink focus:border-accent/60 focus:outline-none";
 
 /**
  * Search + filter/sort bar for the full Threat Feed page. Filter option
@@ -50,7 +50,7 @@ export function FeedFilters({ value, onChange, providers, types, countries }: Fe
           value={value.search}
           onChange={(e) => onChange({ search: e.target.value })}
           placeholder="Search IP, country, type..."
-          className="min-w-[220px] flex-1 rounded-lg border border-white/10 bg-panelmuted/60 px-3 py-1.5 text-sm text-slate-200 placeholder:text-slate-500 focus:border-accent/60 focus:outline-none"
+          className="min-w-[220px] flex-1  border border-line bg-white px-3 py-1.5 text-sm text-ink placeholder:text-ink-muted focus:border-accent/60 focus:outline-none"
         />
 
         <select
@@ -93,7 +93,7 @@ export function FeedFilters({ value, onChange, providers, types, countries }: Fe
           ))}
         </select>
 
-        <label className="flex items-center gap-2 text-xs text-slate-400">
+        <label className="flex items-center gap-2 text-xs text-ink-muted">
           Min confidence
           <input
             type="range"
@@ -104,7 +104,7 @@ export function FeedFilters({ value, onChange, providers, types, countries }: Fe
             onChange={(e) => onChange({ minConfidence: Number(e.target.value) / 100 })}
             className="accent-accent"
           />
-          <span className="w-9 text-right text-slate-300">{Math.round(value.minConfidence * 100)}%</span>
+          <span className="w-9 text-right text-ink-soft">{Math.round(value.minConfidence * 100)}%</span>
         </label>
 
         <select
@@ -118,7 +118,7 @@ export function FeedFilters({ value, onChange, providers, types, countries }: Fe
       </div>
 
       {value.provider && (
-        <p className="text-[11px] text-slate-500">
+        <p className="text-[11px] text-ink-muted">
           Provider filter only matches threats received live over the WebSocket during this session -- the backend's
           deduped IOC records don't carry a per-row provider name (see source_count instead).
         </p>

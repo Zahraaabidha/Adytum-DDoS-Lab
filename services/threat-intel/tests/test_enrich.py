@@ -123,9 +123,9 @@ async def test_second_ioc_with_same_ip_is_a_cache_hit_not_a_second_lookup():
         assert ioc_b.city == "Sydney"
 
 
-async def test_negative_lookup_is_cached_and_marks_enriched():
-    """An IP the local DB has no entry for: cached as a negative result so
-    it isn't retried, and the row is still marked enriched (attempted)."""
+async def test_negative_lookup_marks_enriched_but_is_not_cached():
+    """An IP the local DB has no entry for: the row is marked attempted, but
+    the negative is never cached (it could outlive a database update)."""
     fake_cache = FakeCache()
 
     with (
@@ -138,5 +138,24 @@ async def test_negative_lookup_is_cached_and_marks_enriched():
 
     assert applied is True
     assert ioc.country is None
-    assert ioc.geo_enriched_at is not None  # still marked done, so it won't be retried every cycle
-    assert fake_cache.store["203.0.113.5"] is None
+    assert ioc.lat is None and ioc.lon is None  # never invented
+    assert ioc.geo_enriched_at is not None
+    assert "203.0.113.5" not in fake_cache.store
+
+
+async def test_unavailable_database_leaves_row_unenriched_and_uncached():
+    """No database loaded: the row must stay eligible for a later pass."""
+    fake_cache = FakeCache()
+
+    with (
+        patch("app.enrich.geo_cache", fake_cache),
+        patch("app.enrich.get_enricher") as mock_get_enricher,
+    ):
+        mock_get_enricher.return_value.is_available.return_value = False
+        ioc = make_ioc()
+        applied = await enrich_ioc(AsyncMock(), ioc)
+
+    assert applied is False
+    assert ioc.geo_enriched_at is None
+    assert ioc.lat is None
+    assert fake_cache.store == {}

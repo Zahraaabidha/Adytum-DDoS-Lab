@@ -349,6 +349,7 @@ export interface SuricataAlert {
   hop_alerts: number;
   /** Which Suricata sensor wrote it: ingress (rate-limiter), udp or tcp (target taps). */
   sensor: string;
+  flow_id?: number | null;
   ml: SuricataMlContext;
 }
 
@@ -373,6 +374,8 @@ export interface Incident {
   attack_type: "http_flood" | "slowloris" | "udp_flood" | "tcp_exhaustion" | null;
   title: string;
   status: "active" | "closed";
+  /** "stored": finished and frozen in the local state store (restart-proof); "live": still being updated. */
+  source?: "live" | "stored";
   start: number;
   end: number;
   duration_s: number;
@@ -429,5 +432,18 @@ export interface Incident {
 export interface IncidentsResponse {
   generated_at: number;
   incidents: Incident[];
-  inputs: { suricata_files: number; ml_model_loaded: boolean; ml_polls: number; ml_window_seconds: number };
+  inputs: {
+    suricata_files: number;
+    ml_model_loaded: boolean;
+    ml_polls: number;
+    ml_window_seconds: number;
+    persistence: {
+      enabled: boolean;
+      error?: string | null;
+      polls?: number;
+      incidents?: number;
+      frozen_incidents?: number;
+      incident_alerts?: number;
+    };
+  };
 }

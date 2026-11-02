@@ -4,6 +4,7 @@ import { ThreatFeed } from "../pages/ThreatFeed";
 import { SandboxLab } from "../pages/SandboxLab";
 import { Analytics } from "../pages/Analytics";
 import { Alerts } from "../pages/Alerts";
+import { AlertDetail } from "../pages/AlertDetail";
 import { Settings } from "../pages/Settings";
 
 export function AppRoutes() {
@@ -14,6 +15,7 @@ export function AppRoutes() {
       <Route path="/sandbox" element={<SandboxLab />} />
       <Route path="/analytics" element={<Analytics />} />
       <Route path="/alerts" element={<Alerts />} />
+      <Route path="/alerts/:id" element={<AlertDetail />} />
       <Route path="/settings" element={<Settings />} />
     </Routes>
   );

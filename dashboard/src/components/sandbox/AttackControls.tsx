@@ -23,7 +23,7 @@ export function AttackControls() {
 
   return (
     <Card>
-      <h3 className="mb-3 text-xs font-medium text-slate-300">Attack scenarios</h3>
+      <h3 className="mb-3 text-xs font-medium text-ink-soft">Attack scenarios</h3>
       {isError && (
         <p className="mb-2 text-xs text-danger">
           globe:8090 unreachable -- attack status/controls unavailable.
@@ -34,9 +34,9 @@ export function AttackControls() {
           const running = status?.running?.[id] ?? false;
           const pending = pendingType === id;
           return (
-            <div key={id} className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-3 py-2">
+            <div key={id} className="flex items-center justify-between gap-3  bg-slate-50 px-3 py-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-200">{label}</span>
+                <span className="text-sm text-ink">{label}</span>
                 <Badge tone={running ? "danger" : "neutral"}>
                   {isLoading ? "..." : running ? "running" : "idle"}
                 </Badge>
@@ -45,14 +45,14 @@ export function AttackControls() {
                 <button
                   onClick={() => startAttack.mutate(id)}
                   disabled={running || pending || isError}
-                  className="rounded-lg bg-accent/15 px-3 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-40"
+                  className=" bg-accent/15 px-3 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {pending && startAttack.variables === id ? "Starting..." : "Start"}
                 </button>
                 <button
                   onClick={() => stopAttack.mutate(id)}
                   disabled={!running || pending || isError}
-                  className="rounded-lg bg-white/10 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+                  className=" bg-slate-100 px-3 py-1 text-xs font-medium text-ink-soft transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {pending && stopAttack.variables === id ? "Stopping..." : "Stop"}
                 </button>

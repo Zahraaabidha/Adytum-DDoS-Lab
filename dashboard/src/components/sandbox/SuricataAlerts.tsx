@@ -22,10 +22,10 @@ export function SuricataAlerts() {
   return (
     <Card className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-1">
-        <h3 className="text-xs font-medium text-slate-300">
+        <h3 className="text-xs font-medium text-ink-soft">
           <Badge tone="accent">SURICATA</Badge> IDS alerts
         </h3>
-        <span className="text-[11px] text-slate-500">advisory only: alerts never trigger mitigation</span>
+        <span className="text-[11px] text-ink-muted">advisory only: alerts never trigger mitigation</span>
       </div>
 
       {summary && (
@@ -38,12 +38,12 @@ export function SuricataAlerts() {
       )}
 
       {summary && summary.signatures.length > 0 && (
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-ink-muted">
           {summary.signatures.map((s) => `${s.signature.replace("SENTINEL LAB: ", "")} x${s.count}`).join(" | ")}
         </p>
       )}
 
-      {isLoading && <p className="text-xs text-slate-500">Loading...</p>}
+      {isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
       {!isLoading && rows.length === 0 && (
         <EmptyState
           title="No Suricata alerts yet"
@@ -57,7 +57,7 @@ export function SuricataAlerts() {
       {rows.length > 0 && (
         <div className="max-h-72 overflow-y-auto">
           <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 bg-panelmuted/95 text-slate-400">
+            <thead className="sticky top-0 bg-white text-ink-muted">
               <tr>
                 <th className="py-1 pr-2 font-medium">Time</th>
                 <th className="py-1 pr-2 font-medium">Severity</th>
@@ -71,7 +71,7 @@ export function SuricataAlerts() {
             </thead>
             <tbody>
               {rows.map((alert, i) => (
-                <tr key={`${alert.ts}-${alert.signature_id}-${i}`} className="border-t border-white/5 text-slate-300">
+                <tr key={`${alert.ts}-${alert.signature_id}-${i}`} className="border-t border-line text-ink-soft">
                   <td className="py-1 pr-2 whitespace-nowrap">{new Date(alert.ts * 1000).toLocaleTimeString()}</td>
                   <td className="py-1 pr-2">
                     <Badge tone={SEVERITY_TONE[alert.severity_label] ?? "neutral"}>{alert.severity_label}</Badge>
@@ -97,7 +97,7 @@ export function SuricataAlerts() {
           </table>
         </div>
       )}
-      <p className="text-[11px] text-slate-500">
+      <p className="text-[11px] text-ink-muted">
         Sensors: <span className="font-mono">ingress</span> watches the rate-limiter (HTTP flood);{" "}
         <span className="font-mono">web</span>, <span className="font-mono">udp</span> and{" "}
         <span className="font-mono">tcp</span> are passive taps inside one replica of each target (Slowloris, UDP flood, TCP

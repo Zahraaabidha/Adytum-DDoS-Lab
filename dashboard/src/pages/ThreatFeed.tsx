@@ -101,7 +101,7 @@ export function ThreatFeed() {
       <ThreatGlobe />
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold text-slate-100">Threat Feed</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink">Threat Feed</h2>
         <FeedFilters
           value={filters}
           onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}

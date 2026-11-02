@@ -17,6 +17,10 @@ def configure_logging() -> None:
         level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
+    # httpx logs every request URL at INFO, which would put query-string
+    # credentials (e.g. the MaxMind license key) into the service logs.
+    for noisy in ("httpx", "httpcore"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
 def get_logger(name: str) -> logging.Logger:

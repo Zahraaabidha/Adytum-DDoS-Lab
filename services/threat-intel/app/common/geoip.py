@@ -12,6 +12,7 @@ enriched and only asn/organization stay `None`.
 """
 import ipaddress
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 import geoip2.database
@@ -44,7 +45,9 @@ def _is_routable(ip: str) -> bool:
         addr = ipaddress.ip_address(ip)
     except ValueError:
         return False
-    return not (addr.is_private or addr.is_loopback or addr.is_reserved or addr.is_link_local or addr.is_multicast)
+    # `is_global` is False for private, loopback, link-local, reserved,
+    # CGNAT (100.64/10) and documentation ranges; multicast is excluded too.
+    return addr.is_global and not addr.is_multicast
 
 
 class GeoIpEnricher:
@@ -99,6 +102,22 @@ class GeoIpEnricher:
                 self._asn_reader = None
         else:
             log.info("No GeoIP ASN database at %s -- asn/organization will stay empty", asn_path)
+
+    def status(self) -> dict:
+        """What is actually loaded right now (not merely which files exist)."""
+        self._ensure_loaded()
+
+        def build_date(reader: geoip2.database.Reader | None) -> str | None:
+            if reader is None:
+                return None
+            return datetime.fromtimestamp(reader.metadata().build_epoch, tz=timezone.utc).date().isoformat()
+
+        return {
+            "city_db_loaded": self._city_reader is not None,
+            "asn_db_loaded": self._asn_reader is not None,
+            "city_db_build_date": build_date(self._city_reader),
+            "asn_db_build_date": build_date(self._asn_reader),
+        }
 
     def is_available(self) -> bool:
         self._ensure_loaded()

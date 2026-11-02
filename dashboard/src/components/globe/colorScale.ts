@@ -36,9 +36,27 @@ export function threatTypeColor(threatType: string): string {
   return FALLBACK_PALETTE[hashString(normalized) % FALLBACK_PALETTE.length];
 }
 
+/** External indicators from threat feeds vs attacks actually observed by the sandbox. */
+export const EXTERNAL_MARKER_COLOR = "#2f7f7a";
+export const SANDBOX_MARKER_COLOR = "#c2410c";
+
+export function markerColor(event: { ioc_type: string }): string {
+  return event.ioc_type === "sandbox" ? SANDBOX_MARKER_COLOR : EXTERNAL_MARKER_COLOR;
+}
+
 const colorCache = new Map<string, Color>();
 
 /** Same mapping as `threatTypeColor`, cached as a reusable THREE.Color instance. */
+export function markerColorObject(event: { ioc_type: string }): Color {
+  const hex = markerColor(event);
+  let color = colorCache.get(hex);
+  if (!color) {
+    color = new Color(hex);
+    colorCache.set(hex, color);
+  }
+  return color;
+}
+
 export function threatTypeColorObject(threatType: string): Color {
   const key = threatType.toLowerCase();
   let color = colorCache.get(key);

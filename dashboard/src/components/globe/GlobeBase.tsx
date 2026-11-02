@@ -40,16 +40,16 @@ export function GlobeBase() {
   const globe = useMemo(() => {
     const instance = new ThreeGlobe({ animateIn: false })
       .showAtmosphere(true)
-      .atmosphereColor("#7fb5b0")
-      .atmosphereAltitude(0.18);
+      .atmosphereColor("#5fa8a2")
+      .atmosphereAltitude(0.2);
     const material = instance.globeMaterial() as unknown as {
       color: Color;
       emissive: Color;
       emissiveIntensity: number;
       shininess: number;
     };
-    material.color = new Color("#f4f6f6");
-    material.emissive = new Color("#e6ecec");
+    material.color = new Color("#e6edee");
+    material.emissive = new Color("#dfe8e9");
     material.emissiveIntensity = 0.6;
     material.shininess = 0.4;
     instance.scale.setScalar(GLOBE_RADIUS / THREE_GLOBE_RADIUS);
@@ -61,10 +61,11 @@ export function GlobeBase() {
   useEffect(() => {
     if (!countries) return;
     globe
-      .hexPolygonsData(countries)
-      .hexPolygonResolution(3)
-      .hexPolygonMargin(0.72)
-      .hexPolygonColor(() => "#6f9a97");
+      .polygonsData(countries)
+      .polygonCapColor(() => "rgba(120, 160, 156, 0.55)")
+      .polygonSideColor(() => "rgba(0, 0, 0, 0)")
+      .polygonStrokeColor(() => "#f7fafa")
+      .polygonAltitude(0.004);
   }, [globe, countries]);
 
   useEffect(

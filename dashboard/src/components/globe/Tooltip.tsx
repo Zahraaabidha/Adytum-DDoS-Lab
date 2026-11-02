@@ -1,6 +1,6 @@
 import { Html } from "@react-three/drei";
 import { latLonToVector3 } from "./geo";
-import { threatTypeColor } from "./colorScale";
+import { markerColor } from "./colorScale";
 import { GLOBE_RADIUS } from "./constants";
 import type { ThreatEvent } from "../../types/threat";
 
@@ -17,7 +17,7 @@ interface TooltipProps {
 export function Tooltip({ event }: TooltipProps) {
   if (!event || event.lat == null || event.lon == null) return null;
   const position = latLonToVector3(event.lat, event.lon, GLOBE_RADIUS + 0.05);
-  const color = threatTypeColor(event.threat_type);
+  const color = markerColor(event);
 
   return (
     <Html position={position} center distanceFactor={6} zIndexRange={[100, 0]} pointerEvents="none">

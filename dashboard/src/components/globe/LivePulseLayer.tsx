@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type { Mesh } from "three";
 import { latLonToVector3 } from "./geo";
-import { threatTypeColor } from "./colorScale";
+import { markerColor } from "./colorScale";
 import { GLOBE_RADIUS, MAX_LIVE_PULSES, PULSE_LIFETIME_MS } from "./constants";
 import type { LiveThreatEvent } from "../../types/threat";
 
@@ -58,7 +58,7 @@ export function LivePulseLayer({ liveEvents }: LivePulseLayerProps) {
           key,
           lat: newest.lat as number,
           lon: newest.lon as number,
-          color: threatTypeColor(newest.threat_type),
+          color: markerColor(newest),
           spawnedAt: performance.now(),
         },
         ...prev,

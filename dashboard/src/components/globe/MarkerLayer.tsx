@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { InstancedMesh, Object3D } from "three";
 import type { ThreeEvent } from "@react-three/fiber";
 import { latLonToVector3 } from "./geo";
-import { threatTypeColorObject } from "./colorScale";
+import { markerColorObject } from "./colorScale";
 import { GLOBE_RADIUS, MARKER_RADIUS } from "./constants";
 import type { ThreatEvent as ThreatEventType } from "../../types/threat";
 
@@ -36,12 +36,12 @@ export function MarkerLayer({ events, onHover, onSelect }: MarkerLayerProps) {
     geolocated.forEach((event, i) => {
       const position = latLonToVector3(event.lat as number, event.lon as number, GLOBE_RADIUS);
       dummy.position.copy(position);
-      const scale = 0.7 + Math.min(event.confidence_score, 1) * 0.6;
+      const scale = 0.9 + Math.min(event.confidence_score, 1) * 0.6;
       dummy.scale.setScalar(scale);
       dummy.lookAt(0, 0, 0);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
-      mesh.setColorAt(i, threatTypeColorObject(event.threat_type));
+      mesh.setColorAt(i, markerColorObject(event));
     });
     mesh.count = geolocated.length;
     mesh.instanceMatrix.needsUpdate = true;

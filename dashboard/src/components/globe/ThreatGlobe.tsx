@@ -6,6 +6,7 @@ import { MAX_RENDERED_MARKERS } from "./useThreatMapData";
 import { useGlobeMarkers } from "./useGlobeMarkers";
 import { sandboxEventToLiveThreatEvent } from "./sandboxMarkers";
 import { GlobeBase } from "./GlobeBase";
+import { EXTERNAL_MARKER_COLOR, SANDBOX_MARKER_COLOR } from "./colorScale";
 import { MarkerLayer } from "./MarkerLayer";
 import { LivePulseLayer } from "./LivePulseLayer";
 import { ArcLayer } from "./ArcLayer";
@@ -38,6 +39,7 @@ export function ThreatGlobe() {
   const filters = useThreatStore((state) => state.globeFilters);
   const liveEvents = useThreatStore((state) => state.liveEvents);
   const { markers, latestSandboxEvent, isLoading, isError, hasData } = useGlobeMarkers(filters);
+  const sandboxCount = useMemo(() => markers.filter((m) => m.ioc_type === "sandbox").length, [markers]);
   const [hovered, setHovered] = useState<ThreatEvent | null>(null);
   const [selected, setSelected] = useState<ThreatEvent | null>(null);
 
@@ -51,7 +53,7 @@ export function ThreatGlobe() {
   );
 
   return (
-    <div className="relative h-[calc(100vh-12rem)] min-h-[480px] w-full overflow-hidden  border border-line bg-gradient-to-b from-white to-slate-100 ">
+    <div className="relative h-[calc(100vh-20rem)] min-h-[560px] w-full overflow-hidden  border border-line bg-gradient-to-b from-white to-slate-100 ">
       <GlobeFilters />
 
       {/*
@@ -97,6 +99,8 @@ export function ThreatGlobe() {
             maxDistance={9}
             rotateSpeed={0.4}
             enableDamping
+            autoRotate={!hovered && !selected}
+            autoRotateSpeed={0.35}
             dampingFactor={0.08}
           />
         </Canvas>
@@ -109,8 +113,19 @@ export function ThreatGlobe() {
       )}
 
       {hasData && (
-        <div className="absolute bottom-3 right-3 z-10 text-[10px] text-ink-muted">
-          {markers.length} of up to {MAX_RENDERED_MARKERS}+ rendered
+        <div className="absolute bottom-4 left-4 z-10 border border-line bg-white/95 px-4 py-3 text-xs text-ink-soft">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">Markers</p>
+          <p className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5" style={{ backgroundColor: EXTERNAL_MARKER_COLOR }} aria-hidden />
+            External threat indicators ({markers.length - sandboxCount})
+          </p>
+          <p className="mt-1 flex items-center gap-2">
+            <span className="h-2.5 w-2.5" style={{ backgroundColor: SANDBOX_MARKER_COLOR }} aria-hidden />
+            Attacks observed in the sandbox ({sandboxCount})
+          </p>
+          <p className="mt-2 text-[11px] text-ink-muted">
+            GeoIP coordinates only. Showing up to {MAX_RENDERED_MARKERS}. Drag to rotate, scroll to zoom.
+          </p>
         </div>
       )}
 

@@ -53,7 +53,7 @@ export function ThreatGlobe() {
   );
 
   return (
-    <div className="relative h-[calc(100vh-20rem)] min-h-[560px] w-full overflow-hidden  border border-line bg-white">
+    <div className="relative h-[calc(100vh-20rem)] min-h-[560px] w-full overflow-hidden border border-line bg-white">
       <GlobeFilters />
 
       {/*
@@ -96,7 +96,7 @@ export function ThreatGlobe() {
           <OrbitControls
             enablePan={false}
             minDistance={3}
-            maxDistance={9}
+            maxDistance={10}
             rotateSpeed={0.4}
             enableDamping
             autoRotate={!hovered && !selected}

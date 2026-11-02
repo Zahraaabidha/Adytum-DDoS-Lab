@@ -6,11 +6,7 @@ import { NAV_ITEMS } from "./navItems";
 function Logo() {
   return (
     <span className="flex items-center gap-3">
-      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden>
-        <path d="M17 1 33 17 17 33 1 17Z" fill="#2f7f7a" />
-        <path d="M17 9 25 17 17 25 9 17Z" fill="#fff" />
-        <path d="M17 13 21 17 17 21 13 17Z" fill="#16191c" />
-      </svg>
+      <img src="/logo.png" alt="" width={40} height={40} className="h-10 w-10 object-contain" />
       <span className="text-[22px] font-extrabold tracking-tight text-ink">Adytum</span>
     </span>
   );

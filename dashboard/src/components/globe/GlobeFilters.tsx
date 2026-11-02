@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { threatIntelApi } from "../../lib/api";
-import { useThreatStore } from "../../store/threatStore";
 import { Card } from "../ui";
+import { useThreatStore } from "../../store/threatStore";
 
 const SINCE_HOURS_OPTIONS = [
   { label: "Last hour", value: 1 },
@@ -44,12 +44,12 @@ export function GlobeFilters() {
 
   return (
     <Card className="absolute left-4 top-4 z-10 w-64 space-y-3">
-      <p className="text-sm font-semibold uppercase tracking-wide text-ink-muted">Globe filters</p>
+      <p className="text-base font-semibold uppercase tracking-wide text-ink-muted">Globe filters</p>
 
-      <label className="block text-sm text-ink-muted">
+      <label className="block text-base text-ink-muted">
         Time window
         <select
-          className="mt-1 w-full  border border-line bg-white px-2 py-1.5 text-sm text-ink"
+          className="mt-1 w-full border border-line bg-white px-2 py-1.5 text-base text-ink"
           value={filters.sinceHours}
           onChange={(e) => setFilters({ sinceHours: Number(e.target.value) })}
         >
@@ -61,10 +61,10 @@ export function GlobeFilters() {
         </select>
       </label>
 
-      <label className="block text-sm text-ink-muted">
+      <label className="block text-base text-ink-muted">
         Country
         <select
-          className="mt-1 w-full  border border-line bg-white px-2 py-1.5 text-sm text-ink"
+          className="mt-1 w-full border border-line bg-white px-2 py-1.5 text-base text-ink"
           value={filters.country ?? ""}
           onChange={(e) => setFilters({ country: e.target.value || null })}
         >
@@ -77,10 +77,10 @@ export function GlobeFilters() {
         </select>
       </label>
 
-      <label className="block text-sm text-ink-muted">
+      <label className="block text-base text-ink-muted">
         Threat type
         <select
-          className="mt-1 w-full  border border-line bg-white px-2 py-1.5 text-sm text-ink"
+          className="mt-1 w-full border border-line bg-white px-2 py-1.5 text-base text-ink"
           value={filters.threatType ?? ""}
           onChange={(e) => setFilters({ threatType: e.target.value || null })}
         >
@@ -93,7 +93,7 @@ export function GlobeFilters() {
         </select>
       </label>
 
-      <label className="block text-sm text-ink-muted">
+      <label className="block text-base text-ink-muted">
         Min confidence: {Math.round(filters.minConfidence * 100)}%
         <input
           type="range"

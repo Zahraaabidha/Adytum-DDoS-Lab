@@ -1,6 +1,6 @@
 /** Shared sizing constants so every layer (sphere, markers, arcs, pulses) agrees on scale. */
 export const GLOBE_RADIUS = 2;
-export const MARKER_RADIUS = 0.022;
+export const MARKER_RADIUS = 0.017;
 
 /**
  * Cap on concurrently-animated live pulse rings (new WS events), independent

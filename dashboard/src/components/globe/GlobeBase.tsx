@@ -41,7 +41,7 @@ export function GlobeBase() {
     const instance = new ThreeGlobe({ animateIn: false })
       .showAtmosphere(true)
       .atmosphereColor("#5fa8a2")
-      .atmosphereAltitude(0.2);
+      .atmosphereAltitude(0.24);
     const material = instance.globeMaterial() as unknown as {
       color: Color;
       emissive: Color;
@@ -61,11 +61,12 @@ export function GlobeBase() {
   useEffect(() => {
     if (!countries) return;
     globe
+      .polygonsTransitionDuration(0)
       .polygonsData(countries)
       .polygonCapColor(() => "rgba(120, 160, 156, 0.55)")
       .polygonSideColor(() => "rgba(0, 0, 0, 0)")
       .polygonStrokeColor(() => "#f7fafa")
-      .polygonAltitude(0.004);
+      .polygonAltitude(0.012);
   }, [globe, countries]);
 
   useEffect(

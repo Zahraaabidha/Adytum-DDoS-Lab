@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { InstancedMesh, Object3D } from "three";
+import { DoubleSide, InstancedMesh, Object3D } from "three";
 import type { ThreeEvent } from "@react-three/fiber";
 import { latLonToVector3 } from "./geo";
 import { markerColorObject } from "./colorScale";
@@ -25,6 +25,8 @@ const dummy = new Object3D();
  */
 export function MarkerLayer({ events, onHover, onSelect }: MarkerLayerProps) {
   const meshRef = useRef<InstancedMesh>(null);
+  const haloRef = useRef<InstancedMesh>(null);
+  const ringRef = useRef<InstancedMesh>(null);
   const geolocated = useMemo(
     () => events.filter((event) => event.lat != null && event.lon != null),
     [events],
@@ -32,27 +34,58 @@ export function MarkerLayer({ events, onHover, onSelect }: MarkerLayerProps) {
 
   useEffect(() => {
     const mesh = meshRef.current;
+    const halo = haloRef.current;
+    const ring = ringRef.current;
     if (!mesh) return;
     geolocated.forEach((event, i) => {
       const position = latLonToVector3(event.lat as number, event.lon as number, GLOBE_RADIUS);
       dummy.position.copy(position);
-      const scale = 0.9 + Math.min(event.confidence_score, 1) * 0.6;
+      const scale = 0.85 + Math.min(event.confidence_score, 1) * 0.45;
       dummy.scale.setScalar(scale);
       dummy.lookAt(0, 0, 0);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
       mesh.setColorAt(i, markerColorObject(event));
+      if (halo) {
+        halo.setMatrixAt(i, dummy.matrix);
+        halo.setColorAt(i, markerColorObject(event));
+      }
+      if (ring) {
+        // White outline just above the surface so overlapping dots stay distinct.
+        dummy.position.copy(latLonToVector3(event.lat as number, event.lon as number, GLOBE_RADIUS + 0.003));
+        dummy.updateMatrix();
+        ring.setMatrixAt(i, dummy.matrix);
+      }
     });
     mesh.count = geolocated.length;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    if (ring) {
+      ring.count = geolocated.length;
+      ring.instanceMatrix.needsUpdate = true;
+    }
+    if (halo) {
+      halo.count = geolocated.length;
+      halo.instanceMatrix.needsUpdate = true;
+      if (halo.instanceColor) halo.instanceColor.needsUpdate = true;
+    }
   }, [geolocated]);
 
   if (geolocated.length === 0) return null;
 
   return (
-    <instancedMesh
-      ref={meshRef}
+    <>
+      {/* Soft halo behind each real marker; not interactive. */}
+      <instancedMesh ref={haloRef} args={[undefined, undefined, geolocated.length]} raycast={() => null}>
+        <sphereGeometry args={[MARKER_RADIUS * 2.1, 12, 12]} />
+        <meshBasicMaterial transparent opacity={0.12} depthWrite={false} toneMapped={false} />
+      </instancedMesh>
+      <instancedMesh ref={ringRef} args={[undefined, undefined, geolocated.length]} raycast={() => null}>
+        <ringGeometry args={[MARKER_RADIUS * 0.95, MARKER_RADIUS * 1.45, 24]} />
+        <meshBasicMaterial color="#ffffff" side={DoubleSide} toneMapped={false} />
+      </instancedMesh>
+      <instancedMesh
+        ref={meshRef}
       args={[undefined, undefined, geolocated.length]}
       onPointerOver={(event: ThreeEvent<PointerEvent>) => {
         event.stopPropagation();
@@ -76,5 +109,6 @@ export function MarkerLayer({ events, onHover, onSelect }: MarkerLayerProps) {
       <sphereGeometry args={[MARKER_RADIUS, 8, 8]} />
       <meshBasicMaterial toneMapped={false} />
     </instancedMesh>
+    </>
   );
 }

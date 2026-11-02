@@ -21,7 +21,7 @@ export function Tooltip({ event }: TooltipProps) {
 
   return (
     <Html position={position} center distanceFactor={6} zIndexRange={[100, 0]} pointerEvents="none">
-      <div className="w-52 -translate-y-full  border border-line bg-white/95 p-2.5 text-xs  backdrop-blur">
+      <div className="w-52 -translate-y-full  border border-line bg-white/95 p-2.5 text-sm  backdrop-blur">
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 " style={{ backgroundColor: color }} />
           <span className="font-medium text-ink">{event.ioc}</span>

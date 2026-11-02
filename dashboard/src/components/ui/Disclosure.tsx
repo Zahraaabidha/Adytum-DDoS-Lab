@@ -20,8 +20,8 @@ export function Disclosure({ title, hint, defaultOpen = false, children }: Discl
         className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-slate-50"
       >
         <span>
-          <span className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-ink">{title}</span>
-          {hint && <span className="mt-0.5 block text-xs text-ink-muted">{hint}</span>}
+          <span className="block text-[13px] font-semibold uppercase tracking-[0.12em] text-ink">{title}</span>
+          {hint && <span className="mt-0.5 block text-sm text-ink-muted">{hint}</span>}
         </span>
         <span className={clsx("shrink-0 text-lg leading-none text-ink-muted transition-transform", open && "rotate-45")} aria-hidden>
           +

@@ -21,34 +21,34 @@ export function AttackControls() {
   return (
     <section>
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Attack scenarios</h2>
-        {isError && <span className="text-xs text-danger">Sandbox control API unreachable</span>}
+        <h2 className="text-base font-semibold uppercase tracking-[0.12em] text-ink">Attack scenarios</h2>
+        {isError && <span className="text-sm text-danger">Sandbox control API unreachable</span>}
       </div>
-      <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {ATTACK_TYPES.map(({ id, label }) => {
           const running = status?.running?.[id] ?? false;
           const pending = pendingType === id;
           return (
-            <div key={id} className="flex flex-col gap-3 bg-white p-4">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-ink">{label}</span>
-                <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink-muted">
+            <div key={id} className="flex min-h-[200px] flex-col justify-between border border-line bg-white p-5 lg:aspect-square lg:min-h-0">
+              <div>
+                <span className="flex items-center gap-1.5 text-[13px] uppercase tracking-wide text-ink-muted">
                   <span className={clsx("h-2 w-2", running ? "bg-danger" : "bg-slate-300")} aria-hidden />
                   {isLoading ? "..." : running ? "Running" : "Idle"}
                 </span>
+                <span className="mt-6 block text-xl font-medium leading-snug text-ink">{label}</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <button
                   onClick={() => startAttack.mutate(id)}
                   disabled={running || pending || isError}
-                  className="flex-1 bg-ink px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-35"
+                  className="flex-1 bg-ink px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-35"
                 >
                   {pending && startAttack.variables === id ? "Starting..." : "Start"}
                 </button>
                 <button
                   onClick={() => stopAttack.mutate(id)}
                   disabled={!running || pending || isError}
-                  className="flex-1 border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-35"
+                  className="flex-1 border border-line bg-white px-3 py-1.5 text-sm font-semibold text-ink transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-35"
                 >
                   {pending && stopAttack.variables === id ? "Stopping..." : "Stop"}
                 </button>
@@ -57,7 +57,7 @@ export function AttackControls() {
           );
         })}
       </div>
-      {mutationError && <p className="mt-2 text-xs text-danger">{mutationError}</p>}
+      {mutationError && <p className="mt-2 text-sm text-danger">{mutationError}</p>}
     </section>
   );
 }

@@ -17,7 +17,7 @@ export function Button({ variant = "secondary", className, ...props }: ButtonPro
   return (
     <button
       className={clsx(
-        " px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        " px-3 py-1.5 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         VARIANT_CLASSES[variant],
         className,
       )}

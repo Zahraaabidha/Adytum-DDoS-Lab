@@ -9,7 +9,7 @@ interface PaginationProps {
 export function Pagination({ current, pageCount, total, pageSize, onPage }: PaginationProps) {
   if (total <= pageSize) return null;
   return (
-    <div className="mt-3 flex items-center justify-between text-xs text-ink-muted">
+    <div className="mt-3 flex items-center justify-between text-sm text-ink-muted">
       <span>
         {current * pageSize + 1}-{Math.min((current + 1) * pageSize, total)} of {total}
       </span>

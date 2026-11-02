@@ -5,18 +5,18 @@ import { useSandboxFeed } from "../../lib/sandboxApi";
 
 const BUCKET_S = 5;
 const FEED_WINDOW_S = 120;
-const AXIS = { fontSize: 11, fill: "#5f6770" };
-const TOOLTIP = { border: "1px solid #dcdfe2", borderRadius: 0, fontSize: 12 };
+const AXIS = { fontSize: 13, fill: "#5f6770" };
+const TOOLTIP = { border: "1px solid #dcdfe2", borderRadius: 0, fontSize: 14 };
 const fmtTime = (ts: number) => new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
 function ChartCard({ title, note, empty, children }: { title: string; note: string; empty: boolean; children: React.ReactNode }) {
   return (
     <div className="border border-line bg-white p-4">
-      <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink">{title}</h3>
-      <p className="mb-2 text-xs text-ink-muted">{note}</p>
+      <h3 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-ink">{title}</h3>
+      <p className="mb-2 text-sm text-ink-muted">{note}</p>
       <div className="h-44">
         {empty ? (
-          <div className="flex h-full items-center justify-center text-xs text-ink-muted">No data in the current window</div>
+          <div className="flex h-full items-center justify-center text-sm text-ink-muted">No data in the current window</div>
         ) : (
           children
         )}
@@ -69,9 +69,9 @@ export function SandboxCharts() {
   return (
     <section>
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Live metrics</h2>
+        <h2 className="text-base font-semibold uppercase tracking-[0.12em] text-ink">Live metrics</h2>
         {threshold && (
-          <span className="text-xs text-ink-muted">
+          <span className="text-sm text-ink-muted">
             Rate limit {threshold.threshold_rps.toFixed(0)} req/s · confidence {Math.round(threshold.confidence * 100)}%
           </span>
         )}

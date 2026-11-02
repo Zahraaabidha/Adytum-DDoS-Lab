@@ -26,9 +26,9 @@ export function ThreatCard({ event, compact = false }: ThreatCardProps) {
               style={{ backgroundColor: color }}
               aria-hidden
             />
-            <p className="truncate text-sm font-medium text-ink">{humanLabel(event)}</p>
+            <p className="truncate text-base font-medium text-ink">{humanLabel(event)}</p>
           </div>
-          <p className="mt-0.5 truncate text-xs text-ink-muted">
+          <p className="mt-0.5 truncate text-sm text-ink-muted">
             {event.ioc}
             {event.country ? ` · ${event.country}` : ""}
           </p>
@@ -39,7 +39,7 @@ export function ThreatCard({ event, compact = false }: ThreatCardProps) {
       </div>
 
       {!compact && (
-        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-ink-muted sm:grid-cols-4">
+        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-sm text-ink-muted sm:grid-cols-4">
           <div>
             <dt className="text-ink-muted">Type</dt>
             <dd className="text-ink-soft">{event.threat_type}</dd>

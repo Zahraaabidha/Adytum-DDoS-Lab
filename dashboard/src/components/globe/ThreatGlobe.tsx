@@ -53,7 +53,7 @@ export function ThreatGlobe() {
   );
 
   return (
-    <div className="relative h-[calc(100vh-20rem)] min-h-[560px] w-full overflow-hidden  border border-line bg-gradient-to-b from-white to-slate-100 ">
+    <div className="relative h-[calc(100vh-20rem)] min-h-[560px] w-full overflow-hidden  border border-line bg-white">
       <GlobeFilters />
 
       {/*
@@ -107,14 +107,14 @@ export function ThreatGlobe() {
       )}
 
       {!hasData && isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center text-xs text-ink-muted">
+        <div className="absolute inset-0 flex items-center justify-center text-sm text-ink-muted">
           Loading threat map...
         </div>
       )}
 
       {hasData && (
-        <div className="absolute bottom-4 left-4 z-10 border border-line bg-white/95 px-4 py-3 text-xs text-ink-soft">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">Markers</p>
+        <div className="absolute bottom-4 left-4 z-10 border border-line bg-white/95 px-4 py-3 text-sm text-ink-soft">
+          <p className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-ink-muted">Markers</p>
           <p className="flex items-center gap-2">
             <span className="h-2.5 w-2.5" style={{ backgroundColor: EXTERNAL_MARKER_COLOR }} aria-hidden />
             External threat indicators ({markers.length - sandboxCount})
@@ -123,7 +123,7 @@ export function ThreatGlobe() {
             <span className="h-2.5 w-2.5" style={{ backgroundColor: SANDBOX_MARKER_COLOR }} aria-hidden />
             Attacks observed in the sandbox ({sandboxCount})
           </p>
-          <p className="mt-2 text-[11px] text-ink-muted">
+          <p className="mt-2 text-[13px] text-ink-muted">
             GeoIP coordinates only. Showing up to {MAX_RENDERED_MARKERS}. Drag to rotate, scroll to zoom.
           </p>
         </div>

@@ -47,21 +47,21 @@ export function DetailPanel({ event, onClose }: DetailPanelProps) {
           <Card className="h-full">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-sm font-semibold text-ink">{event.ioc}</p>
+                <p className="text-base font-semibold text-ink">{event.ioc}</p>
                 <Badge className="mt-1" style={{ backgroundColor: `${threatTypeColor(event.threat_type)}26`, color: threatTypeColor(event.threat_type) }}>
                   {event.threat_type}
                 </Badge>
               </div>
               <button
                 onClick={onClose}
-                className=" px-2 py-1 text-xs text-ink-muted hover:bg-slate-100 hover:text-ink"
+                className=" px-2 py-1 text-sm text-ink-muted hover:bg-slate-100 hover:text-ink"
                 aria-label="Close detail panel"
               >
                 Close
               </button>
             </div>
 
-            <dl className="mt-4 space-y-2 text-xs">
+            <dl className="mt-4 space-y-2 text-sm">
               <Row label="Country" value={event.country ?? "Unknown"} />
               <Row label="ASN" value={event.asn != null ? String(event.asn) : "Unknown"} />
               <Row label="Organization" value={event.organization ?? "Unknown"} />
@@ -73,18 +73,18 @@ export function DetailPanel({ event, onClose }: DetailPanelProps) {
             </dl>
 
             <div className="mt-4 border-t border-line pt-3">
-              <p className="text-xs font-medium text-ink-soft">Related sightings</p>
+              <p className="text-sm font-medium text-ink-soft">Related sightings</p>
               {!enabled && (
-                <p className="mt-1 text-xs text-ink-muted">Search is only available for IP indicators.</p>
+                <p className="mt-1 text-sm text-ink-muted">Search is only available for IP indicators.</p>
               )}
-              {enabled && isLoading && <p className="mt-1 text-xs text-ink-muted">Loading...</p>}
+              {enabled && isLoading && <p className="mt-1 text-sm text-ink-muted">Loading...</p>}
               {enabled && !isLoading && (data?.length ?? 0) === 0 && (
-                <p className="mt-1 text-xs text-ink-muted">No additional sightings found.</p>
+                <p className="mt-1 text-sm text-ink-muted">No additional sightings found.</p>
               )}
               {enabled && (data?.length ?? 0) > 0 && (
                 <ul className="mt-1 space-y-1.5">
                   {data!.map((result) => (
-                    <li key={`${result.ioc}-${result.threat_type}-${result.last_seen}`} className="text-xs text-ink-muted">
+                    <li key={`${result.ioc}-${result.threat_type}-${result.last_seen}`} className="text-sm text-ink-muted">
                       <span className="text-ink">{result.threat_type}</span>
                       {" · "}
                       {new Date(result.last_seen).toLocaleDateString()}

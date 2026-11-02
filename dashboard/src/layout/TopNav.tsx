@@ -20,7 +20,7 @@ export function TopNav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 bg-white shadow-[0_1px_0_#e6e8ea]">
+    <header className="bg-white">
       <div className="mx-auto grid h-[80px] max-w-[1600px] grid-cols-[auto_1fr_auto] items-center gap-6 px-5 md:px-10">
         <Link to="/" onClick={() => setOpen(false)} aria-label="Adytum home">
           <Logo />

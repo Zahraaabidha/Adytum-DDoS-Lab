@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import clsx from "clsx";
-import { Badge, EmptyState } from "../components/ui";
+import { Badge, EmptyState, Tabs } from "../components/ui";
+import { IncidentList } from "../components/sandbox/IncidentList";
+import { SuricataAlerts } from "../components/sandbox/SuricataAlerts";
 import { SEVERITY_LABEL, SEVERITY_TONE, type SeverityLevel } from "../components/feed/labels";
 import {
   KIND_HELP,
@@ -17,9 +19,32 @@ const SEVERITIES: SeverityLevel[] = ["high", "medium", "low", "unclassified"];
 const KINDS: AlertKind[] = ["alert", "incident", "anomaly", "intel"];
 type SortKey = "newest" | "oldest" | "severity";
 
-const selectClass = "border border-line bg-white px-3 py-2 text-xs text-ink";
+const selectClass = "border border-line bg-white px-3 py-2 text-sm text-ink";
 
+const ALERT_TABS = [
+  { id: "all", label: "All alerts" },
+  { id: "incidents", label: "Incidents" },
+  { id: "suricata", label: "Suricata alerts" },
+] as const;
+type AlertTab = (typeof ALERT_TABS)[number]["id"];
+
+/** All alert types in one list, plus the correlated-incident and raw Suricata views that used to live in Sandbox Lab. */
 export function Alerts() {
+  const [params, setParams] = useSearchParams();
+  const requested = params.get("tab");
+  const tab: AlertTab = ALERT_TABS.some((t) => t.id === requested) ? (requested as AlertTab) : "all";
+
+  return (
+    <div className="flex flex-col gap-6">
+      <Tabs tabs={ALERT_TABS} active={tab} onChange={(id) => setParams(id === "all" ? {} : { tab: id })} label="Alert views" />
+      {tab === "all" && <AlertsList />}
+      {tab === "incidents" && <IncidentList />}
+      {tab === "suricata" && <SuricataAlerts />}
+    </div>
+  );
+}
+
+function AlertsList() {
   const { alerts, isLoading, failedSources, allFailed } = useUnifiedAlerts();
   const [query, setQuery] = useState("");
   const [severity, setSeverity] = useState<SeverityLevel | "all">("all");
@@ -87,15 +112,15 @@ export function Alerts() {
             )}
             title={KIND_HELP[k]}
           >
-            <span className="block text-[11px] font-medium uppercase tracking-wide text-ink-muted">{KIND_LABEL[k]}</span>
+            <span className="block text-[13px] font-medium uppercase tracking-wide text-ink-muted">{KIND_LABEL[k]}</span>
             <span className="mt-1 block text-2xl font-semibold text-ink">{counts[k]}</span>
-            <span className="mt-1 block text-[11px] leading-snug text-ink-muted">{KIND_HELP[k]}</span>
+            <span className="mt-1 block text-[13px] leading-snug text-ink-muted">{KIND_HELP[k]}</span>
           </button>
         ))}
       </div>
 
       {failedSources.length > 0 && (
-        <p className="border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        <p className="border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           Some sources did not respond and are missing from this list: {failedSources.join(", ")}.
         </p>
       )}
@@ -106,7 +131,7 @@ export function Alerts() {
           value={query}
           onChange={(e) => onFilter(setQuery)(e.target.value)}
           placeholder="Search title, IP, signature, source"
-          className="min-w-[220px] flex-1 border border-line bg-white px-3 py-2 text-sm placeholder:text-ink-muted"
+          className="min-w-[220px] flex-1 border border-line bg-white px-3 py-2 text-base placeholder:text-ink-muted"
           aria-label="Search alerts"
         />
         <select
@@ -150,15 +175,15 @@ export function Alerts() {
         </select>
       </div>
 
-      {isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
+      {isLoading && <p className="text-sm text-ink-muted">Loading...</p>}
       {!isLoading && filtered.length === 0 && (
         <EmptyState title="No alerts match" hint="Adjust the search or filters. Severity is only shown when the source reports one." />
       )}
 
       {filtered.length > 0 && (
         <div className="overflow-x-auto border border-line bg-white">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="border-b border-line bg-slate-50 text-[11px] uppercase tracking-wide text-ink-muted">
+          <table className="w-full min-w-[760px] text-left text-base">
+            <thead className="border-b border-line bg-white text-[13px] uppercase tracking-wide text-ink-muted">
               <tr>
                 <th className="px-4 py-2.5 font-medium">Time</th>
                 <th className="px-4 py-2.5 font-medium">Type</th>
@@ -177,7 +202,7 @@ export function Alerts() {
       )}
 
       {filtered.length > 0 && (
-        <div className="flex items-center justify-between text-xs text-ink-muted">
+        <div className="flex items-center justify-between text-sm text-ink-muted">
           <span>
             {current * PAGE_SIZE + 1}-{Math.min((current + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
           </span>
@@ -210,7 +235,7 @@ function AlertRow({ alert }: { alert: UnifiedAlert }) {
   const to = `/alerts/${encodeURIComponent(alert.id)}`;
   return (
     <tr className="align-top transition-colors hover:bg-slate-50">
-      <td className="whitespace-nowrap px-4 py-3 text-xs text-ink-muted">{new Date(alert.time).toLocaleString()}</td>
+      <td className="whitespace-nowrap px-4 py-3 text-sm text-ink-muted">{new Date(alert.time).toLocaleString()}</td>
       <td className="px-4 py-3">
         <Badge tone={alert.kind === "intel" ? "neutral" : "accent"}>{KIND_LABEL[alert.kind]}</Badge>
       </td>
@@ -221,9 +246,9 @@ function AlertRow({ alert }: { alert: UnifiedAlert }) {
         <Link to={to} className="font-medium text-ink hover:text-accent hover:underline">
           {alert.title}
         </Link>
-        <p className="mt-0.5 text-xs text-ink-muted">{alert.summary}</p>
+        <p className="mt-0.5 text-sm text-ink-muted">{alert.summary}</p>
       </td>
-      <td className="px-4 py-3 text-xs text-ink-soft">{alert.source}</td>
+      <td className="px-4 py-3 text-sm text-ink-soft">{alert.source}</td>
     </tr>
   );
 }

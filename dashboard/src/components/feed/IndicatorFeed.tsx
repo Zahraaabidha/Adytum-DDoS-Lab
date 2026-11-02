@@ -14,7 +14,7 @@ const UNATTRIBUTED = "Unattributed";
 
 type SortKey = "newest" | "oldest" | "confidence";
 
-const selectClass = "border border-line bg-white px-3 py-2 text-xs text-ink";
+const selectClass = "border border-line bg-white px-3 py-2 text-sm text-ink";
 
 /**
  * Indicators carry no provider field. The `category` string begins with the
@@ -115,7 +115,7 @@ export function IndicatorFeed() {
           value={query}
           onChange={(e) => onFilter(setQuery)(e.target.value)}
           placeholder="Search IP, country, type, ASN, organisation"
-          className="min-w-[220px] flex-1 border border-line bg-white px-3 py-2 text-sm placeholder:text-ink-muted"
+          className="min-w-[220px] flex-1 border border-line bg-white px-3 py-2 text-base placeholder:text-ink-muted"
           aria-label="Search indicators"
         />
         <select className={selectClass} value={provider} onChange={(e) => onFilter(setProvider)(e.target.value)} aria-label="Provider">
@@ -161,20 +161,20 @@ export function IndicatorFeed() {
         </select>
       </div>
 
-      <p className="text-xs text-ink-muted">
+      <p className="text-sm text-ink-muted">
         Showing the {Math.min(FEED_WINDOW, rows.length)} most recently updated indicators. Providers are inferred from each
         indicator&apos;s category where it names one; the API does not return a provider field.
       </p>
 
-      {isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
+      {isLoading && <p className="text-sm text-ink-muted">Loading...</p>}
       {!isLoading && filtered.length === 0 && <EmptyState title="No indicators match" hint="Adjust the search or filters." />}
 
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_340px]">
           <div className="min-w-0">
             <div className="overflow-x-auto border border-line bg-white">
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="border-b border-line bg-slate-50 text-[11px] uppercase tracking-wide text-ink-muted">
+              <table className="w-full min-w-[640px] text-left text-base">
+                <thead className="border-b border-line bg-white text-[13px] uppercase tracking-wide text-ink-muted">
                   <tr>
                     <th className="px-4 py-2.5 font-medium">Indicator</th>
                     <th className="px-4 py-2.5 font-medium">Type</th>
@@ -191,23 +191,23 @@ export function IndicatorFeed() {
                       onClick={() => setSelectedKey(key)}
                       className={clsx("cursor-pointer transition-colors hover:bg-slate-50", key === selectedKey && "bg-teal-50")}
                     >
-                      <td className="px-4 py-2.5 font-mono text-xs text-ink">
+                      <td className="px-4 py-2.5 font-mono text-sm text-ink">
                         <button className="text-left hover:text-accent" onClick={() => setSelectedKey(key)}>
                           {event.ioc}
                         </button>
                       </td>
-                      <td className="px-4 py-2.5 text-xs uppercase text-ink-soft">{event.ioc_type}</td>
-                      <td className="px-4 py-2.5 text-xs text-ink-soft">{event.country ?? "Unknown"}</td>
-                      <td className="px-4 py-2.5 text-xs text-ink-soft">{Math.round(event.confidence_score * 100)}%</td>
-                      <td className="px-4 py-2.5 text-xs text-ink-soft">{p}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-xs text-ink-muted">{new Date(event.last_seen).toLocaleString()}</td>
+                      <td className="px-4 py-2.5 text-sm uppercase text-ink-soft">{event.ioc_type}</td>
+                      <td className="px-4 py-2.5 text-sm text-ink-soft">{event.country ?? "Unknown"}</td>
+                      <td className="px-4 py-2.5 text-sm text-ink-soft">{Math.round(event.confidence_score * 100)}%</td>
+                      <td className="px-4 py-2.5 text-sm text-ink-soft">{p}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-sm text-ink-muted">{new Date(event.last_seen).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div className="mt-3 flex items-center justify-between text-xs text-ink-muted">
+            <div className="mt-3 flex items-center justify-between text-sm text-ink-muted">
               <span>
                 {current * PAGE_SIZE + 1}-{Math.min((current + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
               </span>
@@ -251,7 +251,7 @@ function IndicatorDetail({ row }: { row: Row | null }) {
 
   if (!row || !event) {
     return (
-      <aside className="border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-ink-muted lg:sticky lg:top-24 lg:self-start">
+      <aside className="border border-dashed border-line bg-white p-5 text-base text-ink-muted lg:sticky lg:top-24 lg:self-start">
         Select an indicator to see its details.
       </aside>
     );
@@ -279,7 +279,7 @@ function IndicatorDetail({ row }: { row: Row | null }) {
       <p className="mt-3 break-all font-mono text-base font-semibold text-ink">{event.ioc}</p>
       <dl className="mt-4">
         {fields.map(([label, value]) => (
-          <div key={label} className="flex justify-between gap-3 border-b border-line py-2 text-xs last:border-b-0">
+          <div key={label} className="flex justify-between gap-3 border-b border-line py-2 text-sm last:border-b-0">
             <dt className="shrink-0 text-ink-muted">{label}</dt>
             <dd className="min-w-0 break-words text-right text-ink">{value}</dd>
           </div>
@@ -287,10 +287,10 @@ function IndicatorDetail({ row }: { row: Row | null }) {
       </dl>
       {isIp && (
         <div className="mt-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">Other records for this IP</p>
-          {isLoading && <p className="mt-1 text-xs text-ink-muted">Loading...</p>}
-          {!isLoading && (sightings?.length ?? 0) <= 1 && <p className="mt-1 text-xs text-ink-muted">No additional records.</p>}
-          <ul className="mt-1 space-y-1 text-xs text-ink-soft">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-muted">Other records for this IP</p>
+          {isLoading && <p className="mt-1 text-sm text-ink-muted">Loading...</p>}
+          {!isLoading && (sightings?.length ?? 0) <= 1 && <p className="mt-1 text-sm text-ink-muted">No additional records.</p>}
+          <ul className="mt-1 space-y-1 text-sm text-ink-soft">
             {(sightings ?? [])
               .filter((s) => s.threat_type !== event.threat_type)
               .map((s) => (

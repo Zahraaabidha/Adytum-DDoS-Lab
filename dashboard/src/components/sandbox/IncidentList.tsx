@@ -42,21 +42,21 @@ function IncidentRow({ incident }: { incident: Incident }) {
     <div className="flex flex-col gap-2 border border-line bg-white p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone={SEVERITY_TONE[incident.severity]}>{incident.severity}</Badge>
-        <span className="text-sm font-medium text-ink">{incident.title}</span>
+        <span className="text-base font-medium text-ink">{incident.title}</span>
         <Badge tone={incident.status === "active" ? "warn" : "neutral"}>{incident.status}</Badge>
         {incident.source === "stored" && <Badge tone="neutral">stored</Badge>}
-        <span className="text-[11px] text-ink-muted">
+        <span className="text-[13px] text-ink-muted">
           {new Date(incident.start * 1000).toLocaleTimeString()} - {new Date(incident.end * 1000).toLocaleTimeString()} (
           {incident.duration_s}s)
         </span>
       </div>
-      <p className="text-xs text-ink-soft">{ASSESSMENT_LABEL[incident.assessment] ?? incident.assessment}</p>
+      <p className="text-sm text-ink-soft">{ASSESSMENT_LABEL[incident.assessment] ?? incident.assessment}</p>
       <div className="flex flex-wrap gap-1">
         <StateChip label="Suricata" state={suricata.state} />
         <StateChip label="Isolation Forest" state={ml.state} />
         <StateChip label="Metric" state={incident.metrics.state} />
       </div>
-      <p className="text-[11px] text-ink-muted">
+      <p className="text-[13px] text-ink-muted">
         Mitigation:{" "}
         {mitigation.applicable === false
           ? "not applicable (the rate limiter protects HTTP only)"
@@ -70,7 +70,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
         {mitigation.cap_lowered && mitigation.lowered_before_start && " (already lowered before this incident began, likely left over from an earlier one)"}
         {mitigation.states_seen.length > 0 && ` · policy state: ${mitigation.states_seen.join(", ")}`}
       </p>
-      <details className="text-[11px] text-ink-muted">
+      <details className="text-[13px] text-ink-muted">
         <summary className="cursor-pointer text-ink-soft">Evidence and caveats</summary>
         <Link
           to={`/alerts/${encodeURIComponent(`incident-${incident.id}`)}`}
@@ -110,21 +110,21 @@ export function IncidentList() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-1">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Incidents</h2>
-        <span className="text-xs text-ink-muted">Suricata + ML + metrics, advisory only: a Suricata alert never triggers mitigation</span>
+        <h2 className="text-base font-semibold uppercase tracking-[0.12em] text-ink">Incidents</h2>
+        <span className="text-sm text-ink-muted">Suricata + ML + metrics, advisory only: a Suricata alert never triggers mitigation</span>
       </div>
-      {isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
+      {isLoading && <p className="text-sm text-ink-muted">Loading...</p>}
       {!isLoading && incidents.length === 0 && (
         <EmptyState title="No incidents" hint="Run an attack scenario: Suricata alerts and ML detections are grouped here." />
       )}
       {data && !data.inputs.persistence.enabled && (
-        <p className="text-xs text-amber-600">
+        <p className="text-sm text-amber-600">
           Persistence is off ({data.inputs.persistence.error ?? "state store not opened"}): incidents and detector history
           will be lost when the engine restarts.
         </p>
       )}
       {data && !data.inputs.ml_model_loaded && (
-        <p className="text-xs text-red-600">No model loaded: ML detections are unavailable, not calm.</p>
+        <p className="text-sm text-red-600">No model loaded: ML detections are unavailable, not calm.</p>
       )}
       <div className="flex flex-col gap-2">
         {incidents.slice(0, shown).map((incident) => (
@@ -132,7 +132,7 @@ export function IncidentList() {
         ))}
       </div>
       <ShowMore shown={shown} total={incidents.length} step={10} initial={INITIAL} onChange={setShown} />
-      <p className="text-[11px] text-ink-muted">
+      <p className="text-[13px] text-ink-muted">
         Signals are matched by attack type and a +/-20 s time window, not by flow, so agreement means they coincided, not
         that one proves the other. The Isolation Forest scores anomaly, not attack type, and needs 3 consecutive flagged
         polls to count. A missing signal is shown as &quot;no data&quot;, never as calm.

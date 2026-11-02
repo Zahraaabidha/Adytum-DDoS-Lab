@@ -27,7 +27,7 @@ export function LiveFeedList({ events, isLoading, isError, compact = false, empt
   }
 
   if (isLoading) {
-    return <p className="text-xs text-ink-muted">Loading...</p>;
+    return <p className="text-sm text-ink-muted">Loading...</p>;
   }
 
   if (events.length === 0) {

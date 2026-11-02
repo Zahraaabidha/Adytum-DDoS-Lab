@@ -14,19 +14,38 @@ const fmtTime = (ts: number) => new Date(ts * 1000).toLocaleTimeString([], { hou
 interface MetricProps {
   label: string;
   value: string;
+  unit?: string;
   hint: string;
   to?: string;
+  linkLabel?: string;
 }
 
-function Metric({ label, value, hint, to }: MetricProps) {
-  const body = (
-    <div className="h-full bg-white p-5 transition-colors hover:bg-slate-50">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">{value}</p>
-      <p className="mt-2 text-xs leading-snug text-ink-muted">{hint}</p>
+/**
+ * One headline figure: a large light-weight number, its title and a short
+ * explanation, with an optional link to where the detail lives. Columns are
+ * separated by a hairline rule rather than boxed.
+ */
+function Metric({ label, value, unit, hint, to, linkLabel }: MetricProps) {
+  return (
+    <div className="flex min-h-[210px] flex-col border-t border-line px-0 py-6 first:border-t-0 sm:px-6 sm:first:pl-0 lg:min-h-[230px] lg:border-l lg:border-t-0 lg:first:border-l-0">
+      <p className="text-4xl font-extralight leading-none tracking-tight text-ink md:text-5xl">
+        {value}
+        {unit && <span className="ml-1.5 text-base font-light text-ink-muted">{unit}</span>}
+      </p>
+      <h3 className="mt-8 text-base font-medium text-ink">{label}</h3>
+      <p className="mb-5 mt-2 text-sm leading-relaxed text-ink-soft">{hint}</p>
+      {to && linkLabel ? (
+        <Link
+          to={to}
+          className="mt-auto inline-flex w-fit items-center gap-2 border-b border-accent pb-0.5 text-sm font-medium text-accent hover:text-ink"
+        >
+          {linkLabel} <span aria-hidden>&rarr;</span>
+        </Link>
+      ) : (
+        <span className="mt-auto block h-[22px]" aria-hidden />
+      )}
     </div>
   );
-  return to ? <Link to={to}>{body}</Link> : body;
 }
 
 /**
@@ -85,16 +104,20 @@ export function Overview() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Metric
           label="Active incidents"
           value={incidentsError ? dash : incidentsLoading ? "..." : String(active)}
           hint={incidentsError ? "defense-engine unreachable" : `${incidents.length} recorded in total, ${mlOnly} flagged by ML only`}
-          to="/alerts"
+          to="/alerts?tab=incidents"
+          linkLabel="View incidents"
         />
         <Metric
           label="Monitored traffic"
-          value={latestRate != null ? `${latestRate.toFixed(1)} req/s` : actionsError ? dash : actionsLoading ? "..." : dash}
+          value={latestRate != null ? latestRate.toFixed(1) : actionsError ? dash : actionsLoading ? "..." : dash}
+          unit={latestRate != null ? "req/s" : undefined}
+          to="/sandbox"
+          linkLabel="View live metrics"
           hint={
             latestRate != null && latestAge != null
               ? `Latest detector sample, ${latestAge < 90 ? `${latestAge} s` : `${Math.round(latestAge / 60)} min`} ago. HTTP traffic through the rate limiter only.`
@@ -109,11 +132,15 @@ export function Overview() {
               ? `Suricata alerts ingested; ${suricata.recent_alerts} in the last ${Math.round(suricata.window_seconds / 60)} min`
               : "Suricata summary unavailable"
           }
-          to="/alerts"
+          to="/alerts?tab=suricata"
+          linkLabel="View alerts"
         />
         <Metric
           label="Peak blocked rate"
-          value={peakBlocked != null ? `${peakBlocked.toFixed(1)} req/s` : dash}
+          value={peakBlocked != null ? peakBlocked.toFixed(1) : dash}
+          unit={peakBlocked != null ? "req/s" : undefined}
+          to="/analytics?tab=mitigation"
+          linkLabel="View mitigation"
           hint={
             peakBlocked != null
               ? "Highest blocked rate across recorded incidents. A total mitigated-request count is not exposed by the backend."
@@ -124,8 +151,8 @@ export function Overview() {
 
       <section>
         <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Traffic and detections</h2>
-          <span className="text-xs text-ink-muted">Logged detector samples and Suricata alerts per 5 min</span>
+          <h2 className="text-base font-semibold uppercase tracking-[0.1em] text-ink">Traffic and detections</h2>
+          <span className="text-sm text-ink-muted">Logged detector samples and Suricata alerts per 5 min</span>
         </div>
         <div className="border border-line bg-white p-4">
           {trend.length === 0 ? (
@@ -135,11 +162,11 @@ export function Overview() {
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={trend} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
                   <CartesianGrid stroke="#e8eaec" vertical={false} />
-                  <XAxis dataKey="ts" type="number" scale="time" domain={["dataMin", "dataMax"]} tickFormatter={fmtTime} tick={{ fontSize: 11, fill: "#5f6770" }} minTickGap={40} />
-                  <YAxis yAxisId="rate" tick={{ fontSize: 11, fill: "#5f6770" }} />
-                  <YAxis yAxisId="alerts" orientation="right" allowDecimals={false} tick={{ fontSize: 11, fill: "#5f6770" }} />
-                  <Tooltip labelFormatter={(v) => new Date(Number(v) * 1000).toLocaleString()} contentStyle={{ border: "1px solid #dcdfe2", borderRadius: 0, fontSize: 12 }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <XAxis dataKey="ts" type="number" scale="time" domain={["dataMin", "dataMax"]} tickFormatter={fmtTime} tick={{ fontSize: 13, fill: "#5f6770" }} minTickGap={40} />
+                  <YAxis yAxisId="rate" tick={{ fontSize: 13, fill: "#5f6770" }} />
+                  <YAxis yAxisId="alerts" orientation="right" allowDecimals={false} tick={{ fontSize: 13, fill: "#5f6770" }} />
+                  <Tooltip labelFormatter={(v) => new Date(Number(v) * 1000).toLocaleString()} contentStyle={{ border: "1px solid #dcdfe2", borderRadius: 0, fontSize: 14 }} />
+                  <Legend wrapperStyle={{ fontSize: 14 }} />
                   <Bar yAxisId="alerts" dataKey="alerts" name="Suricata alerts" fill="#16191c" barSize={10} />
                   <Line yAxisId="rate" type="monotone" dataKey="rate" name="Request rate (req/s)" stroke="#2f7f7a" strokeWidth={2} dot={false} connectNulls />
                   <Line yAxisId="rate" type="stepAfter" dataKey="limit" name="Rate limit (req/s)" stroke="#8a949b" strokeDasharray="4 3" dot={false} connectNulls />
@@ -148,7 +175,7 @@ export function Overview() {
             </div>
           )}
         </div>
-        <p className="mt-2 text-xs text-ink-muted">
+        <p className="mt-2 text-sm text-ink-muted">
           Request-rate points are recorded by the detector when it adjusts the rate limit, so gaps mean no adjustment, not zero
           traffic. The backend does not expose a continuous traffic series.
         </p>
@@ -157,16 +184,16 @@ export function Overview() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <section className="lg:col-span-2">
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Recent incidents</h2>
-            <Link to="/alerts" className="text-xs font-medium text-accent hover:underline">
+            <h2 className="text-base font-semibold uppercase tracking-[0.1em] text-ink">Recent incidents</h2>
+            <Link to="/alerts" className="text-sm font-medium text-accent hover:underline">
               All alerts &rarr;
             </Link>
           </div>
           <div className="border border-line bg-white">
-            {incidentsError && <p className="p-4 text-xs text-ink-muted">Incident data is unavailable right now.</p>}
-            {incidentsLoading && <p className="p-4 text-xs text-ink-muted">Loading...</p>}
+            {incidentsError && <p className="p-4 text-sm text-ink-muted">Incident data is unavailable right now.</p>}
+            {incidentsLoading && <p className="p-4 text-sm text-ink-muted">Loading...</p>}
             {!incidentsLoading && !incidentsError && incidents.length === 0 && (
-              <p className="p-4 text-xs text-ink-muted">No incidents recorded. They appear when Suricata or the ML detector flag traffic.</p>
+              <p className="p-4 text-sm text-ink-muted">No incidents recorded. They appear when Suricata or the ML detector flag traffic.</p>
             )}
             <ul className="divide-y divide-line">
               {incidents.slice(0, RECENT_INCIDENTS).map((incident) => (
@@ -174,11 +201,11 @@ export function Overview() {
                   <div className="min-w-0">
                     <Link
                       to={`/alerts/${encodeURIComponent(`incident-${incident.id}`)}`}
-                      className="text-sm font-medium text-ink hover:text-accent hover:underline"
+                      className="text-base font-medium text-ink hover:text-accent hover:underline"
                     >
                       {incident.title}
                     </Link>
-                    <p className="mt-0.5 text-xs text-ink-muted">
+                    <p className="mt-0.5 text-sm text-ink-muted">
                       {new Date(incident.start * 1000).toLocaleString()} · {incident.duration_s.toFixed(0)} s · {incident.status}
                     </p>
                   </div>
@@ -193,20 +220,20 @@ export function Overview() {
 
         <section>
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Sandbox</h2>
-            <Link to="/sandbox" className="text-xs font-medium text-accent hover:underline">
+            <h2 className="text-base font-semibold uppercase tracking-[0.1em] text-ink">Sandbox</h2>
+            <Link to="/sandbox" className="text-sm font-medium text-accent hover:underline">
               Open lab &rarr;
             </Link>
           </div>
           <Card className="p-0 md:p-0">
-            {sandboxError && <p className="p-4 text-xs text-ink-muted">Sandbox control API is unreachable.</p>}
-            {sandboxLoading && !sandboxError && <p className="p-4 text-xs text-ink-muted">Checking...</p>}
+            {sandboxError && <p className="p-4 text-sm text-ink-muted">Sandbox control API is unreachable.</p>}
+            {sandboxLoading && !sandboxError && <p className="p-4 text-sm text-ink-muted">Checking...</p>}
             {!sandboxLoading && !sandboxError && running.length === 0 && (
-              <p className="p-4 text-xs text-ink-muted">No attack profiles reported.</p>
+              <p className="p-4 text-sm text-ink-muted">No attack profiles reported.</p>
             )}
             <ul className="divide-y divide-line">
               {running.map(([attackType, isRunning]) => (
-                <li key={attackType} className="flex items-center justify-between px-4 py-2.5 text-xs">
+                <li key={attackType} className="flex items-center justify-between px-4 py-3 text-sm">
                   <span className="text-ink-soft">{attackType}</span>
                   <Badge tone={isRunning ? "ok" : "neutral"}>{isRunning ? "Running" : "Stopped"}</Badge>
                 </li>

@@ -11,9 +11,9 @@ interface EmptyStateProps {
  */
 export function EmptyState({ title, hint }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1  border border-dashed border-slate-300 bg-slate-50/60 p-12 text-center">
-      <p className="text-sm font-medium text-ink-soft">{title}</p>
-      {hint && <p className="text-xs text-ink-muted">{hint}</p>}
+    <div className="flex flex-col items-center justify-center gap-1  border border-dashed border-line bg-white p-12 text-center">
+      <p className="text-base font-medium text-ink-soft">{title}</p>
+      {hint && <p className="text-sm text-ink-muted">{hint}</p>}
     </div>
   );
 }

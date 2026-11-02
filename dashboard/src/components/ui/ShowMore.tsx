@@ -10,7 +10,7 @@ interface ShowMoreProps {
 export function ShowMore({ shown, total, step, initial, onChange }: ShowMoreProps) {
   if (total <= initial) return null;
   return (
-    <div className="mt-3 flex items-center gap-4 text-xs">
+    <div className="mt-3 flex items-center gap-4 text-sm">
       <span className="text-ink-muted">
         Showing {Math.min(shown, total)} of {total}
       </span>

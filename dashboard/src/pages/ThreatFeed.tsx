@@ -15,7 +15,7 @@ type TabId = (typeof TABS)[number]["id"];
 function Total({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-white px-5 py-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">{label}</p>
+      <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-muted">{label}</p>
       <p className="mt-1.5 text-2xl font-semibold tracking-tight text-ink">{value}</p>
     </div>
   );
@@ -50,7 +50,7 @@ export function ThreatFeed() {
             aria-selected={tab === t.id}
             onClick={() => setParams(t.id === "globe" ? {} : { tab: t.id })}
             className={clsx(
-              "-mb-px border-b-2 px-1 pb-3 pt-1 text-sm font-semibold transition-colors",
+              "-mb-px border-b-2 px-1 pb-3 pt-1 text-base font-semibold transition-colors",
               tab === t.id ? "border-accent text-ink" : "border-transparent text-ink-muted hover:text-ink",
             )}
           >

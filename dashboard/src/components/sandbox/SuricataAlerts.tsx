@@ -26,8 +26,8 @@ export function SuricataAlerts() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-1">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Suricata alerts</h2>
-        <span className="text-xs text-ink-muted">advisory only: alerts never trigger mitigation</span>
+        <h2 className="text-base font-semibold uppercase tracking-[0.12em] text-ink">Suricata alerts</h2>
+        <span className="text-sm text-ink-muted">advisory only: alerts never trigger mitigation</span>
       </div>
 
       {summary && (
@@ -40,12 +40,12 @@ export function SuricataAlerts() {
       )}
 
       {summary && summary.signatures.length > 0 && (
-        <p className="text-[11px] text-ink-muted">
+        <p className="text-[13px] text-ink-muted">
           {summary.signatures.map((s) => `${s.signature.replace("SENTINEL LAB: ", "")} x${s.count}`).join(" | ")}
         </p>
       )}
 
-      {isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
+      {isLoading && <p className="text-sm text-ink-muted">Loading...</p>}
       {!isLoading && rows.length === 0 && (
         <EmptyState
           title="No Suricata alerts yet"
@@ -58,7 +58,7 @@ export function SuricataAlerts() {
       )}
       {rows.length > 0 && (
         <div className="overflow-x-auto border border-line bg-white p-4">
-          <table className="w-full min-w-[760px] text-left text-xs">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="text-ink-muted">
               <tr>
                 <th className="py-1 pr-2 font-medium">Time</th>
@@ -100,7 +100,7 @@ export function SuricataAlerts() {
         </div>
       )}
       <ShowMore shown={shown} total={rows.length} step={20} initial={INITIAL} onChange={setShown} />
-      <p className="text-[11px] text-ink-muted">
+      <p className="text-[13px] text-ink-muted">
         Sensors: <span className="font-mono">ingress</span> watches the rate-limiter (HTTP flood);{" "}
         <span className="font-mono">web</span>, <span className="font-mono">udp</span> and{" "}
         <span className="font-mono">tcp</span> are passive taps inside one replica of each target (Slowloris, UDP flood, TCP

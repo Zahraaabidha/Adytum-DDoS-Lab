@@ -27,14 +27,14 @@ export function MitigationLogTable() {
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Mitigation log</h2>
-      {isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
+      <h2 className="text-base font-semibold uppercase tracking-[0.12em] text-ink">Mitigation log</h2>
+      {isLoading && <p className="text-sm text-ink-muted">Loading...</p>}
       {!isLoading && rows.length === 0 && (
         <EmptyState title="No mitigation actions yet" hint="Run an attack scenario to generate real mitigation events." />
       )}
       {rows.length > 0 && (
         <div className="overflow-x-auto border border-line bg-white p-4">
-          <table className="w-full min-w-[560px] text-left text-xs">
+          <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-ink-muted">
               <tr>
                 <th className="py-1 pr-2 font-medium">Time</th>

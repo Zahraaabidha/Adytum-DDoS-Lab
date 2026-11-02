@@ -20,7 +20,7 @@ interface FeedFiltersProps {
 }
 
 const SELECT_CLASSES =
-  " border border-line bg-white px-2 py-1.5 text-xs text-ink focus:border-accent/60 focus:outline-none";
+  " border border-line bg-white px-2 py-1.5 text-sm text-ink focus:border-accent/60 focus:outline-none";
 
 /**
  * Search + filter/sort bar for the full Threat Feed page. Filter option
@@ -50,7 +50,7 @@ export function FeedFilters({ value, onChange, providers, types, countries }: Fe
           value={value.search}
           onChange={(e) => onChange({ search: e.target.value })}
           placeholder="Search IP, country, type..."
-          className="min-w-[220px] flex-1  border border-line bg-white px-3 py-1.5 text-sm text-ink placeholder:text-ink-muted focus:border-accent/60 focus:outline-none"
+          className="min-w-[220px] flex-1  border border-line bg-white px-3 py-1.5 text-base text-ink placeholder:text-ink-muted focus:border-accent/60 focus:outline-none"
         />
 
         <select
@@ -93,7 +93,7 @@ export function FeedFilters({ value, onChange, providers, types, countries }: Fe
           ))}
         </select>
 
-        <label className="flex items-center gap-2 text-xs text-ink-muted">
+        <label className="flex items-center gap-2 text-sm text-ink-muted">
           Min confidence
           <input
             type="range"
@@ -118,7 +118,7 @@ export function FeedFilters({ value, onChange, providers, types, countries }: Fe
       </div>
 
       {value.provider && (
-        <p className="text-[11px] text-ink-muted">
+        <p className="text-[13px] text-ink-muted">
           Provider filter only matches threats received live over the WebSocket during this session -- the backend's
           deduped IOC records don't carry a per-row provider name (see source_count instead).
         </p>

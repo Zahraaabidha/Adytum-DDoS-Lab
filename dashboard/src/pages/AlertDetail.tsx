@@ -6,7 +6,7 @@ import { isPrivateIp, KIND_HELP, KIND_LABEL, relatedIncident, useUnifiedAlerts, 
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-line py-2 text-sm last:border-b-0">
+    <div className="flex justify-between gap-4 border-b border-line py-2 text-base last:border-b-0">
       <dt className="shrink-0 text-ink-muted">{label}</dt>
       <dd className="min-w-0 break-words text-right text-ink">{children}</dd>
     </div>
@@ -16,7 +16,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 const fmt = (ms: number) => new Date(ms).toLocaleString();
 
 function SectionTitle({ children }: { children: ReactNode }) {
-  return <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{children}</h3>;
+  return <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">{children}</h3>;
 }
 
 export function AlertDetail() {
@@ -27,11 +27,11 @@ export function AlertDetail() {
   if (!alert) {
     return (
       <div className="flex flex-col gap-4">
-        <Link to="/alerts" className="text-sm text-accent hover:underline">
+        <Link to="/alerts" className="text-base text-accent hover:underline">
           &larr; Back to alerts
         </Link>
         {isLoading ? (
-          <p className="text-xs text-ink-muted">Loading...</p>
+          <p className="text-sm text-ink-muted">Loading...</p>
         ) : (
           <EmptyState
             title="Alert not found"
@@ -49,7 +49,7 @@ export function AlertDetail() {
 
   return (
     <div className="flex flex-col gap-5">
-      <Link to="/alerts" className="text-sm text-accent hover:underline">
+      <Link to="/alerts" className="text-base text-accent hover:underline">
         &larr; Back to alerts
       </Link>
 
@@ -59,9 +59,9 @@ export function AlertDetail() {
           <Badge tone={SEVERITY_TONE[alert.severity]}>{SEVERITY_LABEL[alert.severity]}</Badge>
         </div>
         <h2 className="mt-3 text-xl font-semibold text-ink">{alert.title}</h2>
-        <p className="mt-1 text-sm text-ink-muted">{KIND_HELP[alert.kind]}</p>
+        <p className="mt-1 text-base text-ink-muted">{KIND_HELP[alert.kind]}</p>
         {alert.severity === "unclassified" && (
-          <p className="mt-2 text-xs text-ink-muted">
+          <p className="mt-2 text-sm text-ink-muted">
             Unclassified: the source did not publish a severity for this item, so none is assumed.
           </p>
         )}
@@ -141,7 +141,7 @@ export function AlertDetail() {
             {s.ml.policy_state && <Field label="Mitigation state">{s.ml.policy_state}</Field>}
             {s.hop_alerts > 0 && <Field label="Merged sightings">{s.hop_alerts} duplicate(s) merged</Field>}
           </dl>
-          <p className="mt-3 text-xs text-ink-muted">Suricata alerts are advisory; they never trigger mitigation on their own.</p>
+          <p className="mt-3 text-sm text-ink-muted">Suricata alerts are advisory; they never trigger mitigation on their own.</p>
         </Card>
       )}
 
@@ -151,7 +151,7 @@ export function AlertDetail() {
         <Card>
           <SectionTitle>Related incident</SectionTitle>
           {related ? (
-            <p className="text-sm text-ink">
+            <p className="text-base text-ink">
               <Link to={`/alerts/${encodeURIComponent(`incident-${related.id}`)}`} className="text-accent hover:underline">
                 {related.title}
               </Link>{" "}
@@ -160,7 +160,7 @@ export function AlertDetail() {
               </span>
             </p>
           ) : (
-            <p className="text-sm text-ink-muted">No correlated incident covers this alert in the current window.</p>
+            <p className="text-base text-ink-muted">No correlated incident covers this alert in the current window.</p>
           )}
         </Card>
       )}
@@ -172,7 +172,7 @@ function IpValue({ ip }: { ip: string }) {
   return (
     <span className="font-mono">
       {ip}
-      {isPrivateIp(ip) && <span className="ml-2 font-sans text-xs text-ink-muted">(private/internal, no GeoIP)</span>}
+      {isPrivateIp(ip) && <span className="ml-2 font-sans text-sm text-ink-muted">(private/internal, no GeoIP)</span>}
     </span>
   );
 }
@@ -212,7 +212,7 @@ function IncidentEvidence({ incident: i }: { incident: NonNullable<UnifiedAlert[
         <Field label="Rate limit">{i.mitigation.cap_lowered ? `Lowered to ${i.mitigation.min_cap_rps} req/s` : "Not lowered"}</Field>
       </dl>
       {i.evidence.length > 0 && (
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-ink-soft">
+        <ul className="mt-3 list-disc space-y-1 pl-5 text-base text-ink-soft">
           {i.evidence.map((line) => (
             <li key={line}>{line}</li>
           ))}
@@ -220,8 +220,8 @@ function IncidentEvidence({ incident: i }: { incident: NonNullable<UnifiedAlert[
       )}
       {i.caveats.length > 0 && (
         <div className="mt-4 border-l-2 border-line pl-3">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">Caveats</p>
-          <ul className="mt-1 space-y-1 text-xs text-ink-muted">
+          <p className="text-[13px] font-medium uppercase tracking-wide text-ink-muted">Caveats</p>
+          <ul className="mt-1 space-y-1 text-sm text-ink-muted">
             {i.caveats.map((line) => (
               <li key={line}>{line}</li>
             ))}

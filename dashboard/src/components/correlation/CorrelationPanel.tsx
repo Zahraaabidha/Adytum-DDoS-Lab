@@ -21,14 +21,14 @@ export function CorrelationPanel() {
   return (
     <Card>
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-ink">Sandbox &harr; Threat Intel correlation</h2>
+        <h2 className="text-base font-semibold text-ink">Sandbox &harr; Threat Intel correlation</h2>
         <Badge tone="neutral">Heuristic</Badge>
       </div>
 
-      {isLoading && <p className="mt-3 text-xs text-ink-muted">Computing correlation...</p>}
+      {isLoading && <p className="mt-3 text-sm text-ink-muted">Computing correlation...</p>}
 
       {isError && !isLoading && (
-        <p className="mt-3 text-xs text-ink-muted">Correlation endpoint (threat-intel) is unreachable right now.</p>
+        <p className="mt-3 text-sm text-ink-muted">Correlation endpoint (threat-intel) is unreachable right now.</p>
       )}
 
       {!isLoading && !isError && data && (
@@ -39,9 +39,9 @@ export function CorrelationPanel() {
                 <span className="text-3xl font-semibold text-ink">
                   {data.correlation_percentage?.toFixed(0)}%
                 </span>
-                <span className="text-xs text-ink-muted">behavioral similarity</span>
+                <span className="text-sm text-ink-muted">behavioral similarity</span>
               </div>
-              <p className="text-sm text-ink-soft">{data.observation}</p>
+              <p className="text-base text-ink-soft">{data.observation}</p>
               {data.matched_features.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {data.matched_features.map((feature) => (
@@ -53,9 +53,9 @@ export function CorrelationPanel() {
               )}
             </>
           ) : (
-            <p className="text-sm text-ink-soft">{data.observation}</p>
+            <p className="text-base text-ink-soft">{data.observation}</p>
           )}
-          <p className="border-t border-line pt-2 text-xs italic text-ink-muted">{data.disclaimer}</p>
+          <p className="border-t border-line pt-2 text-sm italic text-ink-muted">{data.disclaimer}</p>
         </div>
       )}
     </Card>

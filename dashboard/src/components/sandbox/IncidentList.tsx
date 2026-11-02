@@ -1,7 +1,11 @@
-import { Badge, Card, EmptyState } from "../ui";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Badge, EmptyState, ShowMore } from "../ui";
 import type { BadgeTone } from "../ui/Badge";
 import { useIncidents } from "../../lib/defenseEngineApi";
 import type { Incident } from "../../types/threat";
+
+const INITIAL = 3;
 
 const SEVERITY_TONE: Record<Incident["severity"], BadgeTone> = { high: "danger", medium: "warn", low: "neutral" };
 
@@ -35,7 +39,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
   const { suricata, ml } = incident.detectors;
   const mitigation = incident.mitigation;
   return (
-    <div className="flex flex-col gap-2  border border-line p-3">
+    <div className="flex flex-col gap-2 border border-line bg-white p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone={SEVERITY_TONE[incident.severity]}>{incident.severity}</Badge>
         <span className="text-sm font-medium text-ink">{incident.title}</span>
@@ -68,6 +72,12 @@ function IncidentRow({ incident }: { incident: Incident }) {
       </p>
       <details className="text-[11px] text-ink-muted">
         <summary className="cursor-pointer text-ink-soft">Evidence and caveats</summary>
+        <Link
+          to={`/alerts/${encodeURIComponent(`incident-${incident.id}`)}`}
+          className="mt-1 inline-block font-medium text-accent hover:underline"
+        >
+          Open full incident details &rarr;
+        </Link>
         <ul className="mt-1 list-disc pl-5">
           {incident.evidence.map((line) => (
             <li key={line}>{line}</li>
@@ -89,7 +99,8 @@ function IncidentRow({ incident }: { incident: Incident }) {
  * Suricata table and the mitigation log below stay as the detail views; this card does not repeat them.
  */
 export function IncidentList() {
-  const { data, isLoading, isError } = useIncidents(10);
+  const { data, isLoading, isError } = useIncidents(30);
+  const [shown, setShown] = useState(INITIAL);
 
   if (isError) {
     return <EmptyState title="Incidents unavailable" hint="defense-engine:9300 did not respond." />;
@@ -97,12 +108,10 @@ export function IncidentList() {
   const incidents = data?.incidents ?? [];
 
   return (
-    <Card className="flex flex-col gap-3">
+    <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-1">
-        <h3 className="text-xs font-medium text-ink-soft">
-          <Badge tone="accent">INCIDENTS</Badge> Unified detection
-        </h3>
-        <span className="text-[11px] text-ink-muted">advisory only: a Suricata alert never triggers mitigation</span>
+        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Incidents</h2>
+        <span className="text-xs text-ink-muted">Suricata + ML + metrics, advisory only: a Suricata alert never triggers mitigation</span>
       </div>
       {isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
       {!isLoading && incidents.length === 0 && (
@@ -117,11 +126,12 @@ export function IncidentList() {
       {data && !data.inputs.ml_model_loaded && (
         <p className="text-xs text-red-600">No model loaded: ML detections are unavailable, not calm.</p>
       )}
-      <div className="flex max-h-[32rem] flex-col gap-2 overflow-y-auto">
-        {incidents.map((incident) => (
+      <div className="flex flex-col gap-2">
+        {incidents.slice(0, shown).map((incident) => (
           <IncidentRow key={incident.id} incident={incident} />
         ))}
       </div>
+      <ShowMore shown={shown} total={incidents.length} step={10} initial={INITIAL} onChange={setShown} />
       <p className="text-[11px] text-ink-muted">
         Signals are matched by attack type and a +/-20 s time window, not by flow, so agreement means they coincided, not
         that one proves the other. The Isolation Forest scores anomaly, not attack type, and needs 3 consecutive flagged
@@ -129,6 +139,6 @@ export function IncidentList() {
         {data?.inputs.persistence.enabled &&
           ` Finished incidents are stored (${data.inputs.persistence.incidents ?? 0} kept, ${data.inputs.persistence.polls ?? 0} detector polls) and survive an engine restart; the gap while the engine was down stays no data.`}
       </p>
-    </Card>
+    </section>
   );
 }

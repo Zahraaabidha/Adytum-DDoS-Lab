@@ -1,4 +1,5 @@
-import { Card, EmptyState } from "../ui";
+import { useState } from "react";
+import { EmptyState, ShowMore } from "../ui";
 import { useMitigations } from "../../lib/defenseEngineApi";
 
 /**
@@ -7,7 +8,10 @@ import { useMitigations } from "../../lib/defenseEngineApi";
  * `/mitigations` fetcher -- same `defense-engine:9300/mitigations` data,
  * rendered as a raw chronological log here instead of a chart.
  */
+const INITIAL = 10;
+
 export function MitigationLogTable() {
+  const [shown, setShown] = useState(INITIAL);
   const { data: actions, isLoading, isError } = useMitigations(100);
 
   if (isError) {
@@ -22,16 +26,16 @@ export function MitigationLogTable() {
   const rows = [...(actions ?? [])].sort((a, b) => b.ts - a.ts);
 
   return (
-    <Card className="flex flex-col gap-2">
-      <h3 className="text-xs font-medium text-ink-soft">Mitigation log</h3>
+    <section className="flex flex-col gap-3">
+      <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Mitigation log</h2>
       {isLoading && <p className="text-xs text-ink-muted">Loading...</p>}
       {!isLoading && rows.length === 0 && (
         <EmptyState title="No mitigation actions yet" hint="Run an attack scenario to generate real mitigation events." />
       )}
       {rows.length > 0 && (
-        <div className="max-h-72 overflow-y-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 bg-white text-ink-muted">
+        <div className="overflow-x-auto border border-line bg-white p-4">
+          <table className="w-full min-w-[560px] text-left text-xs">
+            <thead className="text-ink-muted">
               <tr>
                 <th className="py-1 pr-2 font-medium">Time</th>
                 <th className="py-1 pr-2 font-medium">Confidence</th>
@@ -40,7 +44,7 @@ export function MitigationLogTable() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((action, i) => (
+              {rows.slice(0, shown).map((action, i) => (
                 <tr key={`${action.ts}-${i}`} className="border-t border-line text-ink-soft">
                   <td className="py-1 pr-2 whitespace-nowrap">{new Date(action.ts * 1000).toLocaleTimeString()}</td>
                   <td className="py-1 pr-2">{Math.round(action.confidence * 100)}%</td>
@@ -54,6 +58,7 @@ export function MitigationLogTable() {
           </table>
         </div>
       )}
-    </Card>
+      <ShowMore shown={shown} total={rows.length} step={20} initial={INITIAL} onChange={setShown} />
+    </section>
   );
 }

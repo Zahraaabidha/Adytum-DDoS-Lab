@@ -4,3 +4,8 @@ export type { BadgeTone } from "./Badge";
 export { StatTile } from "./StatTile";
 export { Button } from "./Button";
 export { EmptyState } from "./EmptyState";
+export { Disclosure } from "./Disclosure";
+export { Pagination } from "./Pagination";
+export { usePagination } from "./usePagination";
+export { ShowMore } from "./ShowMore";
+export { Tabs } from "./Tabs";

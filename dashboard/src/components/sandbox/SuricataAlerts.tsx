@@ -1,4 +1,5 @@
-import { Badge, Card, EmptyState, StatTile } from "../ui";
+import { useState } from "react";
+import { Badge, EmptyState, ShowMore, StatTile } from "../ui";
 import type { BadgeTone } from "../ui/Badge";
 import { useSuricataAlerts, useSuricataSummary } from "../../lib/defenseEngineApi";
 
@@ -9,7 +10,10 @@ const SEVERITY_TONE: Record<string, BadgeTone> = { high: "danger", medium: "warn
  * volume). Advisory only: an alert never changes the rate limit. The "ML" column shows what the
  * classifier saw within 10 s of the alert (peak confidence, and the Prometheus-derived request rate).
  */
+const INITIAL = 10;
+
 export function SuricataAlerts() {
+  const [shown, setShown] = useState(INITIAL);
   const { data: alerts, isLoading, isError } = useSuricataAlerts(100);
   const { data: summary } = useSuricataSummary();
 
@@ -20,16 +24,14 @@ export function SuricataAlerts() {
   const rows = alerts ?? [];
 
   return (
-    <Card className="flex flex-col gap-3">
+    <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-1">
-        <h3 className="text-xs font-medium text-ink-soft">
-          <Badge tone="accent">SURICATA</Badge> IDS alerts
-        </h3>
-        <span className="text-[11px] text-ink-muted">advisory only: alerts never trigger mitigation</span>
+        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink">Suricata alerts</h2>
+        <span className="text-xs text-ink-muted">advisory only: alerts never trigger mitigation</span>
       </div>
 
       {summary && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-4">
           <StatTile label="Alerts ingested" value={summary.total_ingested} />
           <StatTile label={`Last ${Math.round(summary.window_seconds / 60)} min`} value={summary.recent_alerts} />
           <StatTile label="ML also flagged" value={summary.ml_flagged_alerts} />
@@ -55,9 +57,9 @@ export function SuricataAlerts() {
         />
       )}
       {rows.length > 0 && (
-        <div className="max-h-72 overflow-y-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 bg-white text-ink-muted">
+        <div className="overflow-x-auto border border-line bg-white p-4">
+          <table className="w-full min-w-[760px] text-left text-xs">
+            <thead className="text-ink-muted">
               <tr>
                 <th className="py-1 pr-2 font-medium">Time</th>
                 <th className="py-1 pr-2 font-medium">Severity</th>
@@ -70,7 +72,7 @@ export function SuricataAlerts() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((alert, i) => (
+              {rows.slice(0, shown).map((alert, i) => (
                 <tr key={`${alert.ts}-${alert.signature_id}-${i}`} className="border-t border-line text-ink-soft">
                   <td className="py-1 pr-2 whitespace-nowrap">{new Date(alert.ts * 1000).toLocaleTimeString()}</td>
                   <td className="py-1 pr-2">
@@ -97,6 +99,7 @@ export function SuricataAlerts() {
           </table>
         </div>
       )}
+      <ShowMore shown={shown} total={rows.length} step={20} initial={INITIAL} onChange={setShown} />
       <p className="text-[11px] text-ink-muted">
         Sensors: <span className="font-mono">ingress</span> watches the rate-limiter (HTTP flood);{" "}
         <span className="font-mono">web</span>, <span className="font-mono">udp</span> and{" "}
@@ -104,6 +107,6 @@ export function SuricataAlerts() {
         exhaustion), so they see only a share of that traffic. The rate-limiter forwarding a request is merged into the
         client&apos;s alert (shown as two interfaces), not listed twice.
       </p>
-    </Card>
+    </section>
   );
 }

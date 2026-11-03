@@ -67,6 +67,7 @@ async def enrich_ioc(session: AsyncSession, ioc: Ioc) -> bool:
     address = _lookup_address(ioc)
     # Only positive results are cached: local lookups are cheap, and a cached
     # negative could outlive a database update.
+    result_dict: dict[str, Any] | None
     found, cached_result = await geo_cache.get_cached(address)
     if found and cached_result is not None:
         result_dict = cached_result

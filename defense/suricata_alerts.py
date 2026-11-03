@@ -44,6 +44,7 @@ INITIAL_BACKFILL_BYTES = 2_000_000  # how much of an existing eve.json fills the
 MAX_LINE_BYTES = 64_000  # a longer line is not an EVE event we care about
 READ_CHUNK_BYTES = 1_000_000
 POLL_BUDGET_BYTES = 8_000_000  # one poll never reads more than this; the rest waits for the next poll
+HEAD_BYTES = 256  # how much of a file's start is remembered to recognise it again
 DEDUP_WINDOW_S = 15.0  # a proxy-hop sighting this close to an attacker-facing alert is the same event
 MAX_ALERT_AGE_S = 6 * 3600
 MAX_SIGNATURES = 200
@@ -168,6 +169,7 @@ class _Tail:
         self.sensor = sensor_name(path)
         self.pos: int | None = None
         self.inode: int | None = None
+        self.head = b""  # first bytes of the file, to tell a recreated file from the same one when an inode is reused
         self.buffer = b""
         self.counted_from = 0  # lines starting before this offset are history, not news
         self.skip_partial = False
@@ -317,11 +319,14 @@ class AlertStore:
                 st = os.fstat(fh.fileno())  # one handle for stat and read: a rotation cannot slip in between
                 if tail.pos is None:
                     self._init_tail(tail, st)
-                if st.st_ino != tail.inode:  # rotated: finish the old file, then start the new one from the top
+                replaced = st.st_ino == tail.inode and bool(tail.head) and self._head(fh, len(tail.head)) != tail.head
+                if st.st_ino != tail.inode or replaced:  # rotated (or deleted and recreated, the filesystem reusing the inode): finish the old file, then start the new one from the top
                     new.extend(self._drain_rotated(tail))
                     tail.inode, tail.pos, tail.buffer, tail.counted_from, tail.skip_partial = st.st_ino, 0, b"", 0, False
+                    tail.head = b""
                 elif st.st_size < tail.pos:  # truncated in place: nothing left to recover
                     tail.pos, tail.buffer, tail.counted_from, tail.skip_partial = 0, b"", 0, False
+                    tail.head = b""
                 while tail.pos < st.st_size and budget > 0:
                     fh.seek(tail.pos)
                     chunk = fh.read(min(READ_CHUNK_BYTES, st.st_size - tail.pos, budget))
@@ -331,11 +336,18 @@ class AlertStore:
                     new.extend(self._consume(tail, chunk))
                 if tail.pos < st.st_size:
                     self.behind = True
+                if len(tail.head) < HEAD_BYTES and tail.pos:
+                    tail.head = self._head(fh, min(HEAD_BYTES, tail.pos))
         new.extend(self._promote_unmatched())
         self._polls += 1
         self._prune()
         self._save_state()
         return new
+
+    @staticmethod
+    def _head(fh, n: int) -> bytes:
+        fh.seek(0)
+        return fh.read(n)
 
     def _drain_rotated(self, tail: _Tail) -> list[dict]:
         """Reads what is left of the file `tail` was reading, which has been renamed (`eve.json.<timestamp>`),

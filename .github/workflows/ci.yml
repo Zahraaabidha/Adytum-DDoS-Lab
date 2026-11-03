@@ -34,6 +34,7 @@ jobs:
           --health-retries 10
     env:
       MIGRATION_TEST_DATABASE_URL: postgresql+asyncpg://postgres:migtest@localhost:5432/migtest
+      PYTHONPATH: ${{ github.workspace }}/services/threat-intel
     defaults:
       run:
         working-directory: services/threat-intel

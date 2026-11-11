@@ -13,8 +13,6 @@ Everything runs in Docker, on isolated networks.
 <img alt="React" src="https://img.shields.io/badge/React-TypeScript-61DAFB?logo=react&logoColor=black">
 </p>
 
-> **Safety:** the attacker and target networks are Docker `internal` networks, so attack traffic cannot reach external hosts. Never publish the lab's ports beyond your own machine.
-
 ## Overview
 
 Simulated attacks hit an isolated target network. An Isolation Forest detector and Suricata flag them, an adaptive rate limiter mitigates HTTP floods, and a dashboard shows the results next to live public threat-intelligence data.

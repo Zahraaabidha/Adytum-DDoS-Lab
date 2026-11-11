@@ -145,21 +145,6 @@ MAXMIND_LICENSE_KEY=
 
 For geolocation, place `GeoLite2-City.mmdb` and `GeoLite2-ASN.mmdb` in `data/geoip/`. Without them, markers have no location and none are invented. If no model file is found, the engine runs in pass-through mode (nothing mitigated).
 
-## Security notes
-
-* Every port is bound to `127.0.0.1` (`SENTINEL_BIND` overrides this).
-* The `globe` service mounts the Docker socket and its attack-control API (port 8090) is unauthenticated. Never expose it.
-* Grafana allows anonymous viewing and its admin password defaults to a lab value; set `GRAFANA_ADMIN_PASSWORD` to change it.
-* Never run `docker compose down -v` or `docker system prune --volumes` on this project: they delete recordings, incident history and the threat-intel database.
-
-## Known limitations
-
-* The rate limiter protects HTTP only. Detecting another attack type still lowers the HTTP cap, which is not protection.
-* Concurrent legitimate clients lose 1.3% (single-source flood) to 6.7% (six-source flood) of requests.
-* All traffic is synthetic lab traffic at one load level with one run per scenario. The detector flags about 8% of legitimate samples offline.
-* Suricata alerts are advisory and never change the rate limit.
-* Wazuh rules are a configuration stub (no manager is deployed). `infra/k8s` and `infra/terraform` are unverified.
-
 ## Testing
 
 ```bash
@@ -174,5 +159,3 @@ npm run typecheck && npm run lint && npm run build   # dashboard
 
 bash tests/test_network_isolation.sh           # network isolation
 ```
-
-GitHub Actions runs all of the above plus `ruff`.
